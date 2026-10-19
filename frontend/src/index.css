@@ -2370,7 +2370,7 @@ body.no-tabbar #app .card{background:var(--m1-surface);border-radius:var(--m1-r-
 body.no-tabbar .wprog{background:var(--m1-surface-2)}
 body.no-tabbar .wprog i{background:var(--m1-text)}
 body.no-tabbar #timer{background:color-mix(in srgb,var(--m1-surface-2) 97%,transparent)}
-body.no-tabbar .focus-card{background:var(--m1-surface)}
+body.no-tabbar .focus-card{background:none;box-shadow:none}
 
 /* Cards: one exercise, read top to bottom — name, which set is up, last time, the sets (unchanged),
    then the plan, notes and tags. The order is CSS only; the DOM is the old block's. */
@@ -2418,8 +2418,10 @@ body.no-tabbar .focus-card{background:var(--m1-surface)}
    time, and Prev / Next with what is next as one region. */
 .m1-media{position:relative;margin-bottom:10px}
 .m1-media .exmedia{margin-bottom:0}
-.m1-media:not(.open) .exmedia img,.m1-media:not(.open) .exmedia video{height:104px;object-fit:cover}
-.m1-media:not(.open) .exmedia-x{height:104px}
+.m1-media:not(.open) .exmedia img,.m1-media:not(.open) .exmedia video{height:112px;object-fit:contain}
+.m1-media:not(.open) .exmedia-x{height:112px}
+/* A long uploaded video plays with the browser's own controls once tapped: a strip would bury them. */
+.m1-media .exmedia:has(> video[controls]) video{height:220px;object-fit:contain}
 .m1-media:not(.open) .exmedia .gifhint{display:none}
 .m1-media>.giftoggle{position:absolute;bottom:9px;inset-inline-start:9px;display:inline-flex;align-items:center;gap:4px;background:rgba(0,0,0,.55);color:#fff;border-radius:99px;padding:6px 12px;font-size:12px;font-weight:500;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
 .m1-media>.giftoggle .icn{font-size:13px}
@@ -2435,13 +2437,24 @@ body.no-tabbar .focus-card{background:var(--m1-surface)}
 .m1-act-b{flex:none;width:44px;height:44px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--m1-surface-2);color:var(--m1-text);font-size:20px}
 .m1-act-b:active{background:var(--m1-contrast);color:var(--m1-on-contrast)}
 .m1-act-eff{justify-self:start;min-height:36px;padding:0 14px;border-radius:99px;background:var(--m1-surface-2);color:var(--m1-text-2);font-size:14px;font-weight:600}
-.m1-act-go{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:56px;border-radius:var(--m1-r-ctl);background:var(--m1-action);color:var(--m1-on-action);font-size:18px;font-weight:800;letter-spacing:-.01em;text-transform:none;transition:transform var(--fast) var(--ease)}
+.m1-act-go{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:56px;padding:8px 14px;text-align:center;line-height:1.15;border-radius:var(--m1-r-ctl);background:var(--m1-action);color:var(--m1-on-action);font-size:18px;font-weight:800;letter-spacing:-.01em;text-transform:none;transition:transform var(--fast) var(--ease)}
 .m1-act-go:active:not(:disabled){transform:scale(.985)}
 .m1-act-go:disabled{opacity:.45}
 .m1-act-go .icn{font-size:20px}
 .m1-act-fv.long{font-size:28px}
 @media (max-width:340px){.m1-act-fv{font-size:26px}.m1-act-fv.long{font-size:20px}.m1-act-b{width:36px;height:36px;font-size:18px}.m1-act{padding:14px}.m1-act-vals{gap:8px}.m1-act-st{gap:2px}}
-.m1-nav{background:var(--m1-surface);border-radius:var(--m1-r-card);padding:6px;margin-bottom:10px}
-.m1-nav .m1-next-up{background:transparent;margin:0;border-radius:var(--m1-r-compact)}
+/* Up next is information (it reads as a line of text, and tapping it is still Next); Next is the
+   one navigation control, Prev recedes. */
+.m1-nav{margin-bottom:10px}
+.m1-nav .m1-next-up{min-height:0;margin:0;padding:4px 2px 12px;border-radius:0;background:none}
+.m1-nav .m1-next-up:active{background:none;opacity:.7}
 .m1-nav .m1-next-up .icn{display:none}
-.m1-nav .row .btn{background:var(--m1-surface-2)}
+.m1-nav .m1-nu-name,.m1-nav .m1-nu-names{font-size:16px;font-weight:600;color:var(--m1-text-2)}
+.m1-nav .row{gap:8px}
+.m1-nav .row .btn{min-height:52px;border-radius:var(--m1-r-ctl)}
+.m1-nav .row .btn:first-child{flex:0 0 auto;width:auto;min-width:104px;background:transparent;color:var(--m1-text-2)}
+.m1-nav .row .btn:last-child{flex:1 1 0;min-width:0;width:auto;background:var(--m1-surface);color:var(--m1-text);font-weight:700}
+
+/* The swipe pager's cards are opaque so the neighbour never shows through mid-swipe; on the M1
+   canvas that means the canvas colour, not the app's pure black, or the card reads as a black slab. */
+body.no-tabbar .workout-swipe-card,body.no-tabbar .workout-swipe-preview{background:var(--m1-canvas)}

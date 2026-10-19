@@ -2326,7 +2326,8 @@ export default {
   'Your sports watch, calling you back.': 'ساعتك الرياضية تناديك للعودة.',
   'Coach wants you back on the bar.': 'المدرب يريدك أن تعود إلى البار.',
   'Gentle, for headphones or a quiet room.': 'هادئ، للسماعات أو لغرفة هادئة.',
-  'Complete left': 'إكمال اليسار',
-  'Complete right': 'إكمال اليمين',
+  'Complete left': 'إكمال الجانب الأيسر',
+  'Complete right': 'إكمال الجانب الأيمن',
   'Assistance ({0})': 'المساعدة ({0})',
+  'Hold in progress': 'الثبات قيد التنفيذ',
 }

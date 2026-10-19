@@ -257,6 +257,7 @@ export const PT_BR_OVERRIDES = {
   'From your log:': 'Do seu registro:',
   'Enter a weight and 1–{0} reps. Beyond that it’s basically guesswork.': 'Informe um peso e de 1 a {0} repetições. Acima disso é praticamente chute.',
   'Hold logged': 'Isometria registrada',
+  'Hold in progress': 'Isometria em andamento',
   'Work up through a rep range at the same weight. Reach the top of the range in every set and the weight goes up, reps back to the bottom.': 'Avance por uma faixa de repetições com o mesmo peso. Ao atingir o topo da faixa em todas as séries, o peso aumenta e as repetições voltam ao mínimo.',
   'Nothing logged yet, so this session sets the baseline.': 'Nada registrado ainda, então esta sessão define o ponto de partida.',
   'Reminds you at this time on days that have a routine planned.': 'Lembra você neste horário nos dias em que há uma rotina planejada.',

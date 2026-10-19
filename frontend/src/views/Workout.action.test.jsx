@@ -11,6 +11,7 @@ import Workout from './Workout.jsx'
 import { DEF, useStore } from '../store/useStore.js'
 import { useUI } from '../store/useUI.js'
 import { beep, vibrate } from '../lib/sound.js'
+import { registerCustom } from '../lib/exercises.js'
 
 vi.mock('../lib/sound.js', () => ({ beep: vi.fn(), chime: vi.fn(), vibrate: vi.fn(), alertBuzz: vi.fn(), unlock: vi.fn() }))
 vi.mock('../lib/api.js', () => ({ api: vi.fn(() => Promise.resolve({})), appBase: () => '/' }))
@@ -37,6 +38,7 @@ function mount(entries, activeExtra = {}, sExtra = {}) {
 }
 beforeEach(() => { vi.useFakeTimers(); localStorage.clear(); useUI.setState({ sheets: [], toastMsg: '', timer: null, work: null }) })
 afterEach(() => {
+  registerCustom([])
   if (root) act(() => root.unmount())
   container?.remove(); root = container = null
   useUI.getState().stopRest(); useUI.getState().stopWork()
@@ -339,7 +341,10 @@ describe('the media strip', () => {
     expect(container.querySelector('.m1-media.open .exmedia')).toBeTruthy()
   })
   it('an exercise with no media has no strip and no toggle', () => {
-    mount([entry('c-1', [row()])], {}, { customEx: [{ id: 'c-1', n: 'Cable thing', custom: true, bp: 'chest', eq: 'cable', tg: 'pectorals' }] })
+    const ex = { id: 'c-1', n: 'Cable thing', custom: true, bp: 'chest', eq: 'cable', tg: 'pectorals' }
+    registerCustom([ex])
+    mount([entry('c-1', [row()])], {}, { customEx: [ex] })
+    expect(container.textContent).toContain('Cable thing')
     expect(container.querySelector('.m1-media')).toBeNull()
     expect(container.querySelector('.giftoggle')).toBeNull()
   })

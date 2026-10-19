@@ -673,8 +673,9 @@ function ExerciseBlock({ entryIdx, compact, dense, m1, editing, onToggle, onTogg
       button={go(t('Complete'), 'check', () => onToggle(i))} />
     if (timed) {
       if (S.active.backfill) return null
+      const held = !!working && working.owner?.idx === entryIdx && working.owner?.i === i
       return <WorkoutCurrentAction mode="time" fields={[field('sec', col1.hd, fmtNum(s.sec ?? 0), d => bump(s, i, col1, d))]}
-        button={go(t('Start set'), 'play', () => onStartTimed(i), !!working)} />
+        button={{ ...go(held ? t('Hold in progress') : t('Start set'), held ? null : 'play', () => onStartTimed(i), !!working), working: held }} />
     }
     if (perSide && isSideSet(s) && side) {
       const sd = s.sides[side]

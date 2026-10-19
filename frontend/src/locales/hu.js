@@ -2274,7 +2274,8 @@ export default {
   'Your sports watch, calling you back.': 'A sportórád visszahív.',
   'Coach wants you back on the bar.': 'Az edző visszavár a rúdhoz.',
   'Gentle, for headphones or a quiet room.': 'Halk, fülhallgatóhoz vagy csendes helyre.',
-  'Complete left': 'Bal oldal kész',
-  'Complete right': 'Jobb oldal kész',
+  'Complete left': 'Bal oldal befejezése',
+  'Complete right': 'Jobb oldal befejezése',
   'Assistance ({0})': 'Segítség ({0})',
+  'Hold in progress': 'Tartás folyamatban',
 }

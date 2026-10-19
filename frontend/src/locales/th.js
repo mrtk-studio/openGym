@@ -2282,7 +2282,8 @@ export default {
   'Your sports watch, calling you back.': 'นาฬิกาสปอร์ตเรียกคุณกลับมาแล้ว',
   'Coach wants you back on the bar.': 'โค้ชอยากให้คุณกลับมาที่บาร์',
   'Gentle, for headphones or a quiet room.': 'เบา ๆ สำหรับหูฟังหรือห้องที่เงียบ',
-  'Complete left': 'เสร็จข้างซ้าย',
-  'Complete right': 'เสร็จข้างขวา',
+  'Complete left': 'ทำด้านซ้ายเสร็จ',
+  'Complete right': 'ทำด้านขวาเสร็จ',
   'Assistance ({0})': 'ตัวช่วย ({0})',
+  'Hold in progress': 'กำลังค้างไว้',
 }

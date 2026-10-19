@@ -2271,7 +2271,8 @@ export default {
   'Your sports watch, calling you back.': 'Spor saatin seni geri çağırıyor.',
   'Coach wants you back on the bar.': 'Koç seni bara geri bekliyor.',
   'Gentle, for headphones or a quiet room.': 'Sakin, kulaklık ya da sessiz bir oda için.',
-  'Complete left': 'Solu tamamla',
-  'Complete right': 'Sağı tamamla',
+  'Complete left': 'Sol tarafı tamamla',
+  'Complete right': 'Sağ tarafı tamamla',
   'Assistance ({0})': 'Destek ({0})',
+  'Hold in progress': 'Tutuş sürüyor',
 }

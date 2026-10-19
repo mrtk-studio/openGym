@@ -2271,7 +2271,8 @@ export default {
   'Your sports watch, calling you back.': 'Tu reloj deportivo te llama de vuelta.',
   'Coach wants you back on the bar.': 'El coach te quiere de vuelta en la barra.',
   'Gentle, for headphones or a quiet room.': 'Suave, para auriculares o una sala tranquila.',
-  'Complete left': 'Completar izquierda',
-  'Complete right': 'Completar derecha',
+  'Complete left': 'Completar lado izquierdo',
+  'Complete right': 'Completar lado derecho',
   'Assistance ({0})': 'Asistencia ({0})',
+  'Hold in progress': 'Isométrico en curso',
 }

@@ -2268,7 +2268,8 @@ export default {
   'Your sports watch, calling you back.': 'Ваш спортивний годинник кличе вас назад.',
   'Coach wants you back on the bar.': 'Тренер чекає вас назад біля штанги.',
   'Gentle, for headphones or a quiet room.': 'Тихий, для навушників або спокійної кімнати.',
-  'Complete left': 'Завершити ліву',
-  'Complete right': 'Завершити праву',
+  'Complete left': 'Завершити ліву сторону',
+  'Complete right': 'Завершити праву сторону',
   'Assistance ({0})': 'Допомога ({0})',
+  'Hold in progress': 'Триває утримання',
 }

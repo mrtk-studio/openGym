@@ -2271,7 +2271,8 @@ export default {
   'Your sports watch, calling you back.': 'Zegarek sportowy wzywa z powrotem.',
   'Coach wants you back on the bar.': 'Trener czeka przy sztandze.',
   'Gentle, for headphones or a quiet room.': 'Cichy, do słuchawek albo spokojnego pomieszczenia.',
-  'Complete left': 'Zakończ lewą',
-  'Complete right': 'Zakończ prawą',
+  'Complete left': 'Ukończ lewą stronę',
+  'Complete right': 'Ukończ prawą stronę',
   'Assistance ({0})': 'Wspomaganie ({0})',
+  'Hold in progress': 'Trwa utrzymanie',
 }

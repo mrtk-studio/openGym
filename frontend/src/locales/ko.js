@@ -2274,4 +2274,5 @@ export default {
   'Complete left': '왼쪽 완료',
   'Complete right': '오른쪽 완료',
   'Assistance ({0})': '보조 ({0})',
+  'Hold in progress': '버티기 진행 중',
 }

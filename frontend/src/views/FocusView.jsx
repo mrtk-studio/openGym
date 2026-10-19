@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useStore } from '../store/useStore.js'
+import { useUI } from '../store/useUI.js'
 import { exOr } from '../lib/exercises.js'
 import { clampIncline, hasIncline, inclineFits, INCLINE_MAX, INCLINE_STEP } from '../lib/incline.js'
-import { exerciseNameFor, t } from '../lib/i18n.js'
+import { exerciseNameFor, exerciseNameClass, t } from '../lib/i18n.js'
 import { fmtDate, fmtNum, fmtPlate } from '../lib/format.js'
 import { EFFORT, effortOf, modeOf } from '../lib/history.js'
-import { lastEntryFor, pinnedNoteFor, setsRepsOf } from '../lib/history.js'
+import { lastEntryFor, pinnedNoteFor, setsRepsOf, setLabel } from '../lib/history.js'
 import { effortColor, rirOf } from '../lib/effort.js'
 import { progressionGuidance } from '../lib/progression-copy.js'
 import {
@@ -112,6 +113,7 @@ export default function FocusView({
   onNoProg, busy, onSelectEntry, onAdvanceUnit, onPairPrev, onPairNext, onUnpair, pointerEpoch,
 }) {
   const S = useStore(state => state.S)
+  const work = useUI(state => state.work)
   const speedUnit = speedUnitOf(S)
   const entry = S.active.entries[entryIdx]
   const ex = exOr(entry.id)
@@ -127,8 +129,15 @@ export default function FocusView({
   const set = entry.sets[setIdx]
   const firstOpenSet = firstIncomplete(entry)
   const locked = !set.done && setIdx > firstOpenSet
+  // A hold running on this very set (the work timer's owner), read for the look of the buttons
+  // only: starting, ending and recording a hold stay with startTimed and the timer.
+  const holding = !set.done && !!work && work.owner?.idx === entryIdx && work.owner?.i === setIdx
   const readOnly = set.done || locked
   const mode = modeOf({ ...(entry.target || {}), id: entry.id })
+  // The same set's row from the last session, in the words the set rows and Cards use (setLabel
+  // over lastEntryFor) — nothing is derived here. A set with no counterpart has no reference.
+  const lastRow = last?.sets?.[setIdx]
+  const lastRef = lastRow ? setLabel(entry.id, lastRow, last.target, speedUnit).replace(/(\S)×(\S)/g, '$1 × $2') : null
   const effort = effortOf(S)
   const effortField = EFFORT[effort]?.f
   const effortValue = effortField ? set[effortField] ?? null : null
@@ -259,7 +268,7 @@ export default function FocusView({
         </div>
       </div>}
       <header className="focus-card-header">
-        <h2>{exerciseNameFor(ex)}</h2>
+        <h2 className={exerciseNameClass(ex)}>{exerciseNameFor(ex)}</h2>
         <button className="iconbtn" aria-label={t('Details')} onClick={() => exerciseDetailSheet(ex)}><Icon name="info" /></button>
         {isWarmupRow(set) && <span className="focus-warmup" aria-label={t('Warm-up')}>🔥</span>}
         {isFailureSet(set) && <span className="focus-failure" role="img" aria-label={t('Taken to failure')}>{t('F')}</span>}
@@ -276,7 +285,6 @@ export default function FocusView({
         {entry.target?.note && <div className="focus-note">{entry.target.note}</div>}
         {pinnedNote && <div className="focus-note pinned"><Icon name="flag" />{t('From {0}:', fmtDate(pinnedNote.d, true))} {pinnedNote.note}</div>}
         {entry.note && <div className="focus-note">{entry.note}</div>}
-        {last && <div className="focus-last">{t('Last time')} · {fmtDate(last.d)}</div>}
         {guidance && <button className="focus-guidance" onClick={onProgressionSettings}><Icon name="lightbulb" />{t(guidance.policyLabel)}</button>}
       </div>
       <Prescription entry={entry} setIdx={setIdx} unit={S.unit} fallbackRest={S.restSec}>
@@ -284,9 +292,13 @@ export default function FocusView({
         <PlateBadge S={S} entry={entry} set={set} />
         {entry.noProg === true && <span className="focus-badge warning"><Icon name="pause" />{t('Not counted for progression')}{onNoProg && <button type="button" className="focus-badge-action" onClick={() => onNoProg(false)}>{t('Undo')}</button>}</span>}
       </Prescription>
+      {last && <div className="focus-lastwrap">
+        <div className="focus-last">{t('Last time')} · {fmtDate(last.d)}</div>
+        {lastRef && <div className="focus-ref"><bdi dir="auto">{lastRef}</bdi></div>}
+      </div>}
       {locked && <p className="focus-lock-note" role="status">{t('Complete set {0} to edit this one.', firstOpenSet + 1)}</p>}
 
-      <div data-testid="focus-set" className={(set.done ? 'complete ' : '') + (locked ? 'locked' : '')}>
+      <div data-testid="focus-set" className={'focus-set ' + (set.done ? 'complete ' : '') + (locked ? 'locked' : '')}>
         {isSideSet(set) ? <div className="focus-sides">{sideFields('L')}{sideFields('R')}</div> : <>
           {mode === 'cardio' ? <>
             <Stepper label={t('Duration (min)')} ariaLabel="duration" value={set.min || 0} step={1} decimal={false} disabled={readOnly}
@@ -301,10 +313,11 @@ export default function FocusView({
           </> : <>
             <Stepper label={t('Load ({0})', S.unit)} ariaLabel="load" value={set.w || 0} step={loadStep} onStep={stepLoad} disabled={readOnly}
               onChange={value => onField(setIdx, 'w', value)} />
-          {mode === 'time' ? <div className="focus-timed">
+          {mode === 'time' ? <div className={'focus-timed' + (holding ? ' running' : '')}>
             <strong>{t('{0}s hold', set.sec || entry.target?.sec || 45)}</strong>
-            <Button icon="play" aria-label={t('Start set')} disabled={readOnly || busy}
-              onClick={() => onStartTimed(setIdx, onProgress)}>{t('Start')}</Button>
+            <Button icon={holding ? undefined : 'play'} aria-label={t('Start set')} disabled={readOnly || busy}
+              data-state={holding ? 'running' : 'ready'}
+              onClick={() => onStartTimed(setIdx, onProgress)}>{holding ? t('Hold in progress') : t('Start')}</Button>
           </div> : <Stepper label={t('Reps')} ariaLabel="reps" value={set.r || 0} step={1} decimal={false} disabled={readOnly}
             onChange={value => onField(setIdx, 'r', value)} />}</>}
         </>}
@@ -330,7 +343,11 @@ export default function FocusView({
           style={effortTint ? { color: effortTint, borderColor: effortTint, background: `color-mix(in srgb, ${effortTint} 20%, var(--surface-2))` } : undefined}
           aria-label={t(EFFORT[effort].hd)} disabled={readOnly} onClick={openEffort}>{effortValue == null ? t(EFFORT[effort].hd) : fmtNum(effortValue)}</button>}
       </div>
-      <Button variant="primary" icon="check" aria-label={t('Complete set')} onClick={complete}>{set.done ? t('Completed') : t('Complete')}</Button>
+      {/* The one forward action, by state: ready (Action Red), done, locked behind an earlier set
+          (outlined, it still ticks as it always did), and — on a timed set — quiet while the
+          hold itself is the action. */}
+      <Button variant="primary" icon="check" aria-label={t('Complete set')} onClick={complete}
+        className="focus-complete" data-state={set.done ? 'done' : holding ? 'running' : locked ? 'locked' : mode === 'time' ? 'manual' : 'ready'}>{set.done ? t('Completed') : t('Complete')}</Button>
       <div className="focus-secondary">
         <button className="focus-skip" aria-label={t('Skip set')} disabled={setIdx >= entry.sets.length - 1} onClick={() => selectSet(setIdx + 1)}>
           <Icon name="play" />{t('Skip')}

@@ -2274,4 +2274,5 @@ export default {
   'Complete left': '完成左侧',
   'Complete right': '完成右侧',
   'Assistance ({0})': '辅助 ({0})',
+  'Hold in progress': '静力进行中',
 }

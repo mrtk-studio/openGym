@@ -60,3 +60,75 @@
   .focus-extra{grid-template-columns:1fr 1fr}
   .focus-extra>span:first-child{grid-column:1/-1}
 }
+
+/* --- M1 Focus: one set, nothing else. The page is the canvas; the only surface is the panel that
+   holds the values, and the only saturated colour is the next action. Cards' language, simpler.
+   Structure and behaviour are the old Focus's. --- */
+.focus-view{gap:16px}
+.focus-card{padding:0;background:none;box-shadow:none}
+body.no-tabbar .focus-card{background:none;box-shadow:none}
+.focus-card-header{gap:8px;padding:0 0 2px;border:0}
+.focus-card-header h2{font-size:28px;font-weight:800;letter-spacing:-.03em;line-height:1.06;overflow-wrap:anywhere}
+.focus-card-header .iconbtn{flex:none;width:44px;height:44px;border-radius:50%;background:var(--m1-surface)}
+.focus-context{margin-top:8px}
+.focus-tags .tag{background:var(--m1-surface);color:var(--m1-text-2);font-size:11px}
+.focus-note,.focus-guidance{color:var(--m1-text-2)}
+.focus-prescription{gap:2px 14px;margin:14px 0 4px}
+.focus-badge{min-height:0;padding:0;border-radius:0;background:none;color:var(--m1-text-2);font-size:15px;font-weight:600}
+.focus-badge.plan,.focus-badge.warning{padding:5px 11px;border-radius:99px;font-size:13px}
+.focus-badge.plate{font-size:13px;font-weight:500}
+.focus-progress{order:-1;flex:1 0 100%;background:none;color:var(--m1-text);font-size:34px;font-weight:800;letter-spacing:-.04em;line-height:1.05;font-variant-numeric:tabular-nums}
+.focus-lastwrap{display:grid;gap:1px;margin:6px 0 2px}
+.focus-last{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--m1-muted)}
+.focus-ref{font-size:22px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--m1-text)}
+.focus-lock-note{color:var(--m1-text-2)}
+.focus-set{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px;padding:var(--m1-pad-card);background:var(--m1-surface);border-radius:var(--m1-r-card)}
+.focus-set>.stp-w,.focus-side>.stp-w{margin-top:0;gap:8px}
+.focus-set>.focus-sides,.focus-set>.focus-extras,.focus-set>.focus-timed,.focus-set>.focus-effort{grid-column:1/-1;margin-top:0}
+.focus-set .stp-l{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--m1-muted);text-align:start}
+.focus-set .stp,.focus-side .stp{background:none;gap:2px;overflow:visible}
+.focus-set .stp>button,.focus-side .stp>button{width:44px;height:44px;border-radius:50%;background:var(--m1-surface-2);color:var(--m1-text)}
+.focus-set .stp>button:disabled,.focus-side .stp>button:disabled{opacity:.35}
+.focus-set .stp .num{font-size:36px;font-weight:800;letter-spacing:-.04em;font-variant-numeric:tabular-nums;color:var(--m1-text)}
+.focus-set .focus-extra .stp .num,.focus-set .focus-side .focus-extra .stp .num{font-size:20px}
+.focus-set .focus-extra .stp>button{width:36px;height:36px}
+.focus-side{background:var(--m1-surface-2);border-radius:var(--m1-r-compact)}
+.focus-side .stp .num{font-size:30px;font-weight:800;letter-spacing:-.04em}
+.focus-timed{background:var(--m1-surface-2);border-radius:var(--m1-r-compact)}
+.focus-timed strong{font-size:22px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.focus-effort{border-radius:99px}
+.focus-card>.btn.primary,.focus-card>.focus-complete{margin-top:12px;min-height:56px;border-radius:var(--m1-r-ctl);font-size:18px;font-weight:800;letter-spacing:-.01em;background:var(--m1-action);color:var(--m1-on-action)}
+.focus-card>.focus-complete:active{background:var(--m1-action);filter:brightness(.92)}
+/* Completed: the set is behind you, so the action steps back and is plainly a state, not a target.
+   Locked behind an earlier set, or a timed set whose hold is the real action: outlined, not red. */
+.focus-complete[data-state="done"]{background:var(--m1-surface-2)!important;color:var(--m1-text-2)!important}
+.focus-complete[data-state="locked"],.focus-complete[data-state="manual"],.focus-complete[data-state="running"]{background:transparent!important;color:var(--m1-text)!important;box-shadow:inset 0 0 0 1.5px var(--m1-muted)}
+.focus-complete[data-state="locked"]{opacity:.7}
+/* A timed set's Start is its action: Action Red while it is ready, the timer's own green once it runs. */
+.focus-timed .btn[data-state="ready"]{background:var(--m1-action);color:var(--m1-on-action);min-height:48px;border-radius:var(--m1-r-ctl);font-weight:800}
+.focus-timed .btn[data-state="running"],.focus-timed.running .btn{background:color-mix(in srgb,var(--acc) 18%,transparent);color:var(--acc);box-shadow:inset 0 0 0 1.5px var(--acc);min-height:48px;border-radius:var(--m1-r-ctl);font-weight:800}
+.focus-secondary{margin-top:8px}
+.focus-secondary>.iconbtn,.focus-skip{border:0;background:var(--m1-surface);color:var(--m1-text-2);border-radius:var(--m1-r-ctl)}
+.focus-pager>button{border:0;background:var(--m1-surface);color:var(--m1-text-2)}
+.focus-dots button::after{background:var(--m1-muted)}
+.focus-dots button.active::after{background:var(--m1-action)}
+.focus-dots button.done::after{background:var(--m1-text);box-shadow:none}
+.focus-superset-inline{border-bottom-color:var(--m1-surface-2)}
+
+/* A hold in progress, in Cards' Current Action too: the timer is the action now, so the button
+   reads as live — the timer's green, a pulsing dot — and not as a dimmed red button. It is still
+   disabled there (the hold ends from the timer). */
+.m1-act-go.working,.m1-act-go.working:disabled{opacity:1;background:color-mix(in srgb,var(--acc) 16%,var(--m1-surface-2));color:var(--acc);box-shadow:inset 0 0 0 1.5px var(--acc)}
+.m1-act-go.working::before,.focus-timed .btn[data-state="running"]::before{content:'';width:10px;height:10px;border-radius:50%;background:currentColor;animation:holdpulse 1.2s ease-in-out infinite}
+@keyframes holdpulse{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.m1-act-go.working::before,.focus-timed .btn[data-state="running"]::before{animation:none}}
+@media (max-width:400px){.focus-set .stp .num{font-size:30px}}
+
+/* Per side: Left and Right each a panel with load and reps side by side, so both fit above the action. */
+.focus-side{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 6px;padding:var(--m1-pad-compact)}
+.focus-side-header,.focus-side>.focus-extras{grid-column:1/-1}
+.focus-side .stp>button{width:38px;height:38px;background:var(--m1-surface)}
+.focus-side .stp .num{font-size:28px}
+.focus-side-check{background:var(--m1-surface);color:var(--m1-muted)}
+.focus-side-check.done{background:var(--m1-action);color:var(--m1-on-action)}
+.focus-timed .btn[data-state="running"]:disabled{opacity:1}

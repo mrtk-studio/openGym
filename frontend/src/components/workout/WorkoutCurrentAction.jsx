@@ -13,7 +13,7 @@ import Icon from '../Icon.jsx'
 //   summary  a row that is a drop set / rest-pause: its own label, no steppers — its structure is
 //            edited in the grid
 //   effort   { label, onOpen }                    the effort picker, as on the row
-//   button   { label, icon, onClick, disabled }
+//   button   { label, icon, onClick, disabled, working }   `working`: a hold is running on this set
 export default function WorkoutCurrentAction({ fields = [], summary, effort, button, mode }) {
   return <section className="m1-act" aria-label={t('Current')} data-mode={mode}>
     {summary && <div className="m1-act-sum"><bdi dir="ltr">{summary}</bdi></div>}
@@ -28,7 +28,7 @@ export default function WorkoutCurrentAction({ fields = [], summary, effort, but
       </div>)}
     </div>}
     {effort && <button type="button" className="m1-act-eff" onClick={effort.onOpen}>{effort.label}</button>}
-    <button type="button" className="m1-act-go" disabled={button.disabled} onClick={button.onClick}>
+    <button type="button" className={'m1-act-go' + (button.working ? ' working' : '')} disabled={button.disabled} onClick={button.onClick} data-state={button.working ? 'running' : undefined}>
       {button.icon && <Icon name={button.icon} />}{button.label}
     </button>
   </section>
