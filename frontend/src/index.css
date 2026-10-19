@@ -67,6 +67,37 @@
   /* height of the connection indicator under the status bar, 0 while there is none — set by
      components/SyncBanner.jsx. Whatever starts at the top of the screen starts below it. */
   --conn:0px;
+
+  /* ---- M1 semantic palette (fork) -------------------------------------------------
+     Fixed product colours: they do NOT follow the user's --acc, which keeps colouring the
+     general UI. Action Red = training/action, Progress Blue = progression/analysis,
+     Recovery Lime = recovery/positive context (rare). Nothing reads these yet; the M1 views
+     and components opt in. Contrast (measured): white on action 3.78 (large/bold text only),
+     ink on action 5.0, ink on lime 14.3; use the -text variants for small text on the canvas. */
+  --m1-canvas:      #111111;   /* near-black flagship canvas */
+  --m1-surface:     #181818;   /* elevated dark surface */
+  --m1-surface-2:   #242424;   /* secondary / nested dark surface */
+  --m1-contrast:    #F5F2EC;   /* warm-white contrast surface */
+  --m1-on-contrast: #111111;
+  --m1-contrast-2:  #3B3A38;   /* graphite: secondary text on the contrast surface */
+  --m1-action:      #F04427;
+  --m1-on-action:   #ffffff;
+  --m1-action-text: #F04427;   /* action red as text/stroke on the canvas (5.0:1) */
+  --m1-progress:    #4D68E8;
+  --m1-on-progress: #ffffff;
+  --m1-progress-text:#7F94F0;  /* progress blue as small text on the canvas (6.7:1) */
+  --m1-recovery:    #B9F24A;
+  --m1-on-recovery: #111111;
+  --m1-clay:        #A94E35;
+  --m1-on-clay:     #ffffff;
+  --m1-muted:       #A7A7A5;   /* soft gray: muted data / inactive */
+  --m1-text:        #ffffff;
+  --m1-text-2:      rgba(255,255,255,.64);
+  /* shape: hero 28-32, standard 22-26, compact 18-22 */
+  --m1-r-hero:30px; --m1-r-card:24px; --m1-r-compact:20px; --m1-r-ctl:18px;
+  /* spacing: page gutter 16 (min 12), section gap 24-32, card gap 10-12 */
+  --m1-gutter:16px; --m1-gutter-min:12px; --m1-section-gap:28px; --m1-card-gap:12px;
+  --m1-pad-hero:22px; --m1-pad-card:18px; --m1-pad-compact:15px;
 }
 
 :root[data-theme="light"] {
@@ -89,6 +120,20 @@
   --purple:#af52de; --mint:#00c7be; --brown:#a2845e; --grey:#8e8e93;
   --acc-2:#248a3d;
   --on-acc:#ffffff;
+
+  /* M1 light: warm off-white canvas, ink modules as the contrast surface, same saturated
+     accents. Not an inversion. The -text variants darken to stay >= 4.5:1 on the canvas. */
+  --m1-canvas:      #F5F2EC;
+  --m1-surface:     #FFFFFF;
+  --m1-surface-2:   #ECE8DF;
+  --m1-contrast:    #111111;
+  --m1-on-contrast: #F5F2EC;
+  --m1-contrast-2:  #A7A7A5;
+  --m1-action-text: #C9381F;   /* 4.6:1 on the canvas */
+  --m1-progress-text:#3A52D0;  /* 5.7:1 on the canvas */
+  --m1-muted:       #6F6D69;
+  --m1-text:        #111111;
+  --m1-text-2:      rgba(17,17,17,.64);
 }
 
 /* accents — Apple's system colours, so a recolour never looks off-system */
