@@ -708,7 +708,7 @@ export function bwDeltaColor(delta, currentW) {
   if (!delta) return 'var(--label-2)'
   if (!S().targetW) return 'var(--label)'
   const up = S().targetW > currentW
-  return (delta > 0) === up ? 'var(--acc)' : 'var(--red)'
+  return (delta > 0) === up ? 'var(--m1-acc-text)' : 'var(--m1-red-text)'
 }
 function GoalSheet({ close }) {
   const st = S()

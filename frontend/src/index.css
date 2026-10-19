@@ -82,7 +82,7 @@
   --m1-contrast-2:  #3B3A38;   /* graphite: secondary text on the contrast surface */
   --m1-action:      #F04427;
   --m1-on-action:   #ffffff;
-  --m1-action-text: #F04427;   /* action red as text/stroke on the canvas (5.0:1) */
+  --m1-action-text: #FF5E41;   /* action red as small text/stroke: >= 4.5:1 on the canvas and on every M1 surface (5.1 on surface-2) */
   --m1-progress:    #4D68E8;
   --m1-on-progress: #ffffff;
   --m1-progress-text:#7F94F0;  /* progress blue as small text on the canvas (6.7:1) */
@@ -131,7 +131,7 @@
   --m1-contrast-2:  #A7A7A5;
   --m1-action-text: #C9381F;   /* 4.6:1 on the canvas */
   --m1-progress-text:#3A52D0;  /* 5.7:1 on the canvas */
-  --m1-muted:       #6F6D69;
+  --m1-muted:       #65635E;   /* >= 4.5:1 on the canvas and on surface-2 */
   --m1-text:        #111111;
   --m1-text-2:      rgba(17,17,17,.64);
 }
@@ -939,7 +939,7 @@ body.chips-dragging *{cursor:inherit}
 .exmedia img{width:100%;height:320px;object-fit:contain;display:block}
 .exmedia .gifhint,.exmedia .giftoggle{
   position:absolute;bottom:9px;display:inline-flex;align-items:center;gap:4px;
-  background:rgba(0,0,0,.45);color:#fff;border-radius:99px;padding:5px 11px;
+  background:rgba(0,0,0,.62);color:#fff;border-radius:99px;padding:5px 11px;
   font-size:12px;font-weight:500;
   -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
 }
@@ -1232,8 +1232,8 @@ body.chips-dragging *{cursor:inherit}
 .swrow.flash-red .swfront{animation:swflashr .5s ease}
 @keyframes swflashr{0%,35%{background:color-mix(in srgb,var(--red) 22%,var(--surface))}100%{background:var(--surface)}}
 /* The first-use hint under the row it nudged. */
-.swhint{display:flex;justify-content:center;padding:4px 0 6px}
-.swhint button{display:inline-flex;align-items:center;gap:8px;background:var(--acc-soft);color:var(--acc);border-radius:99px;padding:7px 12px;font-size:13px;font-weight:600;animation:swhintin .3s var(--ease);text-align:start}
+.swhint{display:flex;justify-content:center;padding:2px 0 4px}
+.swhint button{display:inline-flex;align-items:center;gap:8px;background:var(--acc-soft);color:var(--acc);border-radius:99px;padding:5px 12px;font-size:12px;line-height:1.25;font-weight:600;animation:swhintin .3s var(--ease);text-align:start}
 .swhint .icn{font-size:15px;flex:none}
 .swhint .icn:last-child{opacity:.7}
 @keyframes swhintin{from{opacity:0;transform:translateY(-4px)}}
@@ -2211,7 +2211,7 @@ body.today-canvas,html:has(body.today-canvas){background:var(--m1-canvas)}
 .m1-hero .m1-kicker{color:var(--hero-ink)}
 .m1-status{
   display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
-  color:var(--hero-ink);background:rgba(17,17,17,.14);border-radius:999px;padding:5px 11px;white-space:nowrap;
+  color:var(--hero-ink);background:rgba(255,255,255,.2);border-radius:999px;padding:5px 11px;white-space:nowrap;
 }
 .m1-status .icn{font-size:14px}
 .m1-status.alt{background:var(--hero-ink);color:var(--hero-paper)}
@@ -2273,7 +2273,7 @@ body.today-canvas,html:has(body.today-canvas){background:var(--m1-canvas)}
 .m1-seg{display:flex;gap:4px;height:8px;margin-bottom:18px}
 .m1-seg i{flex:1;min-width:3px;border-radius:4px;background:rgba(17,17,17,.2);overflow:hidden;display:block}
 .m1-seg b{display:block;height:100%;background:var(--hero-ink);border-radius:4px}
-.m1-now{background:rgba(17,17,17,.14);border-radius:var(--m1-r-compact);padding:var(--m1-pad-compact);margin-bottom:var(--m1-card-gap)}
+.m1-now{background:rgba(255,255,255,.2);border-radius:var(--m1-r-compact);padding:var(--m1-pad-compact);margin-bottom:var(--m1-card-gap)}
 .m1-now .m1-kicker{color:var(--hero-ink);font-size:11px}
 .m1-now-name{font-size:20px;font-weight:800;letter-spacing:-.02em;line-height:1.15;margin-top:4px;overflow-wrap:anywhere;color:var(--m1-on-action)}
 .m1-now-set{font-size:14px;font-weight:700;color:var(--hero-ink);margin-top:4px;font-variant-numeric:tabular-nums}
@@ -2316,7 +2316,7 @@ body.today-canvas,html:has(body.today-canvas){background:var(--m1-canvas)}
 .m1-steps li{display:flex;align-items:center;gap:16px;padding:14px 0;font-size:17px;font-weight:600;border-top:var(--hair) solid var(--sep-op)}
 .m1-steps li:first-child{border-top:0}
 .m1-step-n{font-size:15px;font-weight:700;letter-spacing:.04em;color:var(--m1-muted);font-variant-numeric:tabular-nums;min-width:26px}
-.m1-welcome-cta{width:100%;min-height:56px;border-radius:var(--m1-r-ctl);background:var(--m1-action);color:var(--m1-on-action);font-size:17px;font-weight:700;letter-spacing:-.01em;text-transform:none;transition:transform var(--fast) var(--ease)}
+.m1-welcome-cta{width:100%;min-height:56px;border-radius:var(--m1-r-ctl);background:var(--m1-action);color:var(--m1-on-action);font-size:19px;font-weight:700;letter-spacing:-.01em;text-transform:none;transition:transform var(--fast) var(--ease)}
 .m1-welcome-cta:active{transform:scale(.98)}
 .m1-welcome-alt{display:flex;justify-content:center;gap:6px;margin-top:8px;flex-wrap:wrap}
 .m1-welcome-alt button{min-height:44px;padding:0 14px;font-size:15px;font-weight:500;color:var(--m1-text-2)}
@@ -2375,20 +2375,10 @@ body.no-tabbar .focus-card{background:none;box-shadow:none}
 /* Cards: one exercise, read top to bottom — name, which set is up, last time, the sets (unchanged),
    then the plan, notes and tags. The order is CSS only; the DOM is the old block's. */
 .m1-xb{display:flex;flex-direction:column}
-.m1-xb>*{order:0}
-.m1-xb>.exhd{order:1}
-.m1-xb>.noprog,.m1-xb>.xb-pair{order:2}
-.m1-xb>.m1-cur{order:3}
-.m1-xb>.m1-lt,.m1-xb>.refline{order:4}
-.m1-xb>.m1-act{order:5}
-.m1-xb>.exnote{order:6}
-.m1-xb>.planline{order:7}
-.m1-xb>.xb-sets{order:8}
-.m1-xb>.progline{order:9}
-.m1-xb>.xb-tags{order:10;margin:10px 0 0}
+.m1-xb>.xb-tags{margin:10px 0 0}
 .m1-xb .xb-name{font-size:28px;font-weight:800;letter-spacing:-.03em;line-height:1.06;overflow-wrap:anywhere}
 .ss-ex .m1-xb .xb-name{font-size:20px;letter-spacing:-.02em}
-.m1-xb .xb-tags .tag{font-size:11px;opacity:.85}
+.m1-xb .xb-tags .tag{font-size:11px}
 .m1-cur{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 12px;margin:6px 0 12px}
 .m1-cur .m1-kicker{color:var(--m1-action-text);font-size:12px}
 .m1-cur-val{font-size:24px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--m1-text)}
@@ -2423,25 +2413,25 @@ body.no-tabbar .focus-card{background:none;box-shadow:none}
 /* A long uploaded video plays with the browser's own controls once tapped: a strip would bury them. */
 .m1-media .exmedia:has(> video[controls]) video{height:220px;object-fit:contain}
 .m1-media:not(.open) .exmedia .gifhint{display:none}
-.m1-media>.giftoggle{position:absolute;bottom:9px;inset-inline-start:9px;display:inline-flex;align-items:center;gap:4px;background:rgba(0,0,0,.55);color:#fff;border-radius:99px;padding:6px 12px;font-size:12px;font-weight:500;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.m1-media>.giftoggle{position:absolute;bottom:9px;inset-inline-start:9px;display:inline-flex;align-items:center;gap:4px;background:rgba(0,0,0,.62);color:#fff;border-radius:99px;padding:6px 12px;font-size:12px;font-weight:500;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
 .m1-media>.giftoggle .icn{font-size:13px}
 .m1-act{display:grid;gap:12px;margin:0 0 12px;padding:var(--m1-pad-card);background:var(--m1-surface);border-radius:var(--m1-r-card)}
 .m1-act-sum{font-size:20px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--m1-text);overflow-wrap:anywhere}
 .m1-act-vals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.m1-act-vals.n2{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
+.m1-act-vals.n2{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr)}
 .m1-act-vals.n1{grid-template-columns:minmax(0,1fr)}
 .m1-act-f{display:grid;gap:6px;min-width:0}
 .m1-act-fl{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--m1-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .m1-act-st{display:flex;align-items:center;justify-content:space-between;gap:4px}
-.m1-act-fv{flex:1;min-width:0;text-align:center;font-size:36px;font-weight:800;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums;color:var(--m1-text)}
+.m1-act-fv{flex:1;min-width:0;text-align:center;font-size:32px;font-weight:800;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums;color:var(--m1-text)}
 .m1-act-b{flex:none;width:44px;height:44px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--m1-surface-2);color:var(--m1-text);font-size:20px}
 .m1-act-b:active{background:var(--m1-contrast);color:var(--m1-on-contrast)}
 .m1-act-eff{justify-self:start;min-height:36px;padding:0 14px;border-radius:99px;background:var(--m1-surface-2);color:var(--m1-text-2);font-size:14px;font-weight:600}
-.m1-act-go{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:56px;padding:8px 14px;text-align:center;line-height:1.15;border-radius:var(--m1-r-ctl);background:var(--m1-action);color:var(--m1-on-action);font-size:18px;font-weight:800;letter-spacing:-.01em;text-transform:none;transition:transform var(--fast) var(--ease)}
+.m1-act-go{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:56px;padding:8px 14px;text-align:center;line-height:1.15;border-radius:var(--m1-r-ctl);background:var(--m1-action);color:var(--m1-on-action);font-size:19px;font-weight:800;letter-spacing:-.01em;text-transform:none;transition:transform var(--fast) var(--ease)}
 .m1-act-go:active:not(:disabled){transform:scale(.985)}
 .m1-act-go:disabled{opacity:.45}
 .m1-act-go .icn{font-size:20px}
-.m1-act-fv.long{font-size:28px}
+.m1-act-fv.long{font-size:26px}
 @media (max-width:340px){.m1-act-fv{font-size:26px}.m1-act-fv.long{font-size:20px}.m1-act-b{width:36px;height:36px;font-size:18px}.m1-act{padding:14px}.m1-act-vals{gap:8px}.m1-act-st{gap:2px}}
 /* Up next is information (it reads as a line of text, and tapping it is still Next); Next is the
    one navigation control, Prev recedes. */
@@ -2458,3 +2448,45 @@ body.no-tabbar .focus-card{background:none;box-shadow:none}
 /* The swipe pager's cards are opaque so the neighbour never shows through mid-swipe; on the M1
    canvas that means the canvas colour, not the app's pure black, or the card reads as a black slab. */
 body.no-tabbar .workout-swipe-card,body.no-tabbar .workout-swipe-preview{background:var(--m1-canvas)}
+
+/* --- Phase 9: text contrast on the M1 canvas. The legacy text roles (--label-2/-3, the accent as
+   text) were tuned for the old backgrounds; on the M1 screens (the running workout, Today) they
+   map onto the M1 text tokens instead, which are measured against the M1 surfaces. Scoped, so the
+   rest of the app is unchanged. White on Action Red is 3.78:1, so every control that carries it is
+   set at 19px bold (WCAG large text, 3:1). --- */
+:root{--m1-acc-text:var(--acc)}
+:root[data-theme="light"]{--m1-acc-text:color-mix(in srgb,var(--acc) 62%,#000)}
+body.no-tabbar .dim,body.today-canvas .dim,body.no-tabbar .sethead,body.no-tabbar .subrow .subn,body.no-tabbar .setph,body.today-canvas .today-row .lbl2{color:var(--m1-muted)}
+body.no-tabbar .muted,body.today-canvas .muted,body.no-tabbar .whdr .sub,body.no-tabbar .stp-l{color:var(--m1-text-2)}
+body.no-tabbar .setrow .n,body.no-tabbar .setrow-side>.n{color:var(--m1-text-2)}
+body.no-tabbar .btn.plain:not([data-state]),body.no-tabbar .btn.ghost:not([data-state]),body.no-tabbar .btn.tinted,body.today-canvas .btn.plain,body.today-canvas .btn.ghost,body.today-canvas .btn.tinted,body.no-tabbar .tag.acc,body.no-tabbar .swhint button,body.no-tabbar .ss-hd,body.no-tabbar .ss-amp{color:var(--m1-acc-text)}
+body.no-tabbar .tag:not(.acc),body.no-tabbar .effcell.is-empty,body.today-canvas .empty{color:var(--m1-text-2)}
+:root{--m1-red-text:var(--red)}
+:root[data-theme="light"]{--m1-red-text:color-mix(in srgb,var(--red) 78%,#000)}
+:root[data-theme="light"] body.no-tabbar .effcell-stp .val,:root[data-theme="light"] body.no-tabbar .effcell:not(.is-empty){color:var(--m1-text)!important}
+/* a numeric field has no outline of its own (it fills the stepper): the stepper shows the focus */
+.stp:focus-within{box-shadow:inset 0 0 0 2px var(--acc)}
+body.no-tabbar .wchip:not(.cur):not(.done):not(.partial){color:var(--m1-text-2)}
+/* Short screens (an SE-class phone): the strip, the name and the last-time rows give a little back so
+   the Complete button is not a scroll away on top of a 568px viewport. */
+@media (max-height:700px){
+  .m1-media:not(.open) .exmedia img,.m1-media:not(.open) .exmedia video,.m1-media:not(.open) .exmedia-x{height:80px}
+  .m1-xb .xb-name{font-size:24px}
+  .m1-cur{margin:2px 0 8px}
+  .m1-cur-val{font-size:22px}
+  .m1-lt{margin-bottom:8px}
+  .m1-lt-rows li{font-size:16px}
+  .m1-act{margin-bottom:8px}
+}
+/* Touch targets: the exercise chips (28px), the small text buttons (35px), the swipe hint and the
+   media toggle (25px) read small on screen and keep their look; their tap area is grown the way
+   .iconbtn/.chk already do it (a ::before that extends past the box), to ~44px. */
+body.no-tabbar .wchip,body.no-tabbar .btn.sm,body.today-canvas .btn.sm,body.no-tabbar .swhint button{position:relative}
+body.no-tabbar .wchip::before{content:'';position:absolute;inset:-8px}
+body.no-tabbar .btn.sm::before,body.today-canvas .btn.sm::before{content:'';position:absolute;inset:-5px 0}
+body.no-tabbar .swhint button::before{content:'';position:absolute;inset:-10px -4px}
+.m1-media>.giftoggle::before,.exmedia .giftoggle::before{content:'';position:absolute;inset:-10px -6px}
+
+/* Scripts with tall marks (Devanagari, Bengali, Thai) and Arabic collide at the big names' tight
+   line-height; the same names and titles get a looser one in those languages. */
+:is(:lang(hi),:lang(bn),:lang(th),:lang(ar)) :is(.m1-xb .xb-name,.focus-card-header h2,.m1-hero-title,.today-hdr h1,.m1-cur-val){line-height:1.3}

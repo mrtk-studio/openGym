@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../store/useStore.js'
 import { useUI } from '../store/useUI.js'
-import { exOr } from '../lib/exercises.js'
+import { exOr, isAssisted } from '../lib/exercises.js'
 import { clampIncline, hasIncline, inclineFits, INCLINE_MAX, INCLINE_STEP } from '../lib/incline.js'
 import { exerciseNameFor, exerciseNameClass, t } from '../lib/i18n.js'
 import { fmtDate, fmtNum, fmtPlate } from '../lib/format.js'
@@ -74,12 +74,12 @@ function Prescription({ entry, setIdx, unit, fallbackRest, children }) {
   const rpe = target.rpeMin > 0
     ? `RPE ${fmtNum(target.rpeMin)}${target.rpeMax > target.rpeMin ? `–${fmtNum(target.rpeMax)}` : ''}`
     : ''
-  const rest = target.restSec > 0 ? `Rest ${target.restSec}s` : fallbackRest > 0 ? `Rest ${fallbackRest}s` : ''
-  const badges = [reps && `${reps} Reps`, load, rpe, rest, target.tempo].filter(Boolean)
+  const rest = target.restSec > 0 ? `${t('Rest')} ${target.restSec}s` : fallbackRest > 0 ? `${t('Rest')} ${fallbackRest}s` : ''
+  const badges = [reps && `${reps} ${t('Reps')}`, load, rpe, rest, target.tempo].filter(Boolean)
 
   return <div className="focus-prescription">
     <span className="focus-badge focus-progress">{setIdx + 1}/{entry.sets.length}</span>
-    {badges.map(label => <span className="focus-badge" key={label}>{label}</span>)}
+    {badges.map(label => <span className="focus-badge" dir="auto" key={label}>{label}</span>)}
     {children}
   </div>
 }
@@ -142,6 +142,8 @@ export default function FocusView({
   const effortField = EFFORT[effort]?.f
   const effortValue = effortField ? set[effortField] ?? null : null
   const effortTint = effortValue == null ? null : effortColor(rirOf({ [effortField]: effortValue }))
+  // On an assistance machine the number is the help, not a load.
+  const loadLabel = isAssisted(ex) ? t('Assistance ({0})', S.unit) : t('Load ({0})', S.unit)
   const loadStep = weightIncrement({ ...(entry.target || {}), id: entry.id }, S.unit)
   // Bell to bell over the dumbbells you own, when the profile lists them (issue #376).
   const owned = mode === 'reps' ? ownedWeightsFor(S, { ...(entry.target || {}), id: entry.id }) : null
@@ -186,7 +188,7 @@ export default function FocusView({
           onClick={() => onToggleSide(setIdx, side,
             !sideSet.done && (set.sides.L.done || set.sides.R.done) ? onProgress : undefined)}><Icon name="check" /></button>
       </div>
-      <Stepper label={t('Load ({0})', S.unit)} ariaLabel="load" value={sideSet.w || 0} step={loadStep} onStep={stepLoad} disabled={readOnly || sideSet.done}
+      <Stepper label={loadLabel} ariaLabel="load" value={sideSet.w || 0} step={loadStep} onStep={stepLoad} disabled={readOnly || sideSet.done}
         onChange={value => change('w', value)} />
       <Stepper label={t('Reps')} ariaLabel="reps" value={sideSet.r || 0} step={1} decimal={false} disabled={readOnly || sideSet.done}
         onChange={value => change('r', value)} />
@@ -311,7 +313,7 @@ export default function FocusView({
             {(inclineFits(ex) || entry.sets.some(hasIncline)) && <Stepper label={t('Incline (%)')} ariaLabel="incline" value={set.incline || 0} step={INCLINE_STEP} max={INCLINE_MAX} disabled={readOnly}
               onChange={value => onField(setIdx, 'incline', clampIncline(value))} />}
           </> : <>
-            <Stepper label={t('Load ({0})', S.unit)} ariaLabel="load" value={set.w || 0} step={loadStep} onStep={stepLoad} disabled={readOnly}
+            <Stepper label={loadLabel} ariaLabel="load" value={set.w || 0} step={loadStep} onStep={stepLoad} disabled={readOnly}
               onChange={value => onField(setIdx, 'w', value)} />
           {mode === 'time' ? <div className={'focus-timed' + (holding ? ' running' : '')}>
             <strong>{t('{0}s hold', set.sec || entry.target?.sec || 45)}</strong>

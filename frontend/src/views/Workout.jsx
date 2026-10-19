@@ -292,6 +292,7 @@ function ExerciseBlock({ entryIdx, compact, dense, m1, editing, onToggle, onTogg
   // bell or both together. A one-arm exercise holds one bell, so its plain heading is already true.
   const bells = !bw && bellsIn(cfg) === 2 ? meaning : 'as'
   const loadCol = { f: 'w', step: loadStep, dec: true, hd: bw ? t('Added ({0})', S.unit)
+    : isAssisted(ex) ? t('Assistance ({0})', S.unit)   // the number is the help, not a load (#232)
     : bells === 'each' ? t('Each ({0})', S.unit) : bells === 'total' ? t('Both ({0})', S.unit) : t('Weight ({0})', S.unit) }
   // The reps column is the total in every mode, unilateral included — the stepper walks in
   // twos there so the number you land on is one you can actually split evenly.
@@ -668,7 +669,7 @@ function ExerciseBlock({ entryIdx, compact, dense, m1, editing, onToggle, onTogg
     if (!s) return null
     const field = (key, label, value, step) => ({ key, label, value, dec: wc.steppers ? () => step(-1) : undefined, inc: wc.steppers ? () => step(1) : undefined })
     const go = (label, icon, onClick, disabled) => ({ label, icon, onClick, disabled })
-    const loadHd = isAssisted(ex) ? t('Assistance ({0})', S.unit) : loadCol.hd
+    const loadHd = loadCol.hd
     if (cardio) return <WorkoutCurrentAction mode="cardio" fields={[field('min', col1.hd, fmtNum(s.min ?? 0), d => bump(s, i, col1, d))]}
       button={go(t('Complete'), 'check', () => onToggle(i))} />
     if (timed) {
@@ -692,6 +693,42 @@ function ExerciseBlock({ entryIdx, compact, dense, m1, editing, onToggle, onTogg
       button={go(t('Complete set'), 'check', () => onToggle(i))} />
   })()
   const Root = m1 ? M1Block : Fragment
+  // Cards (m1) read top to bottom in the DOM as they do on screen — name, which set is up, last
+  // time, the action, the notes and plan, the sets, then the progression line and the tags — so a
+  // screen reader and the Tab key meet things in the order the eye does. Every other view keeps the
+  // old order. (Cards used to get there with CSS `order`, which leaves the DOM order behind.)
+  const ordered = !!m1 && !dense
+  const tagsEl = (
+    <div className="row xb-tags" style={{ gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+      {cardio && <span className="tag acc"><Icon name="figureRun" />{t('Cardio')}</span>}
+      {/* A unilateral exercise is logged per side directly (the L/R rows below for reps, a
+          "Left"/"Right" tag on each doubled row for a timed hold), so the old "{n} per side"
+          chip — which halved the combined total for display — is gone: the split is no longer
+          derived, it is what you enter. The tag only flags that this is per-side. */}
+      {!cardio && isPerSide(cfg) && <span className="tag acc nocap"><Icon name="sides" />{t('Per side')}</span>}
+      {(ex.tg || ex.bp) && <span className="tag">{t(MUSCLE_NAME[ex.tg] || ex.tg || ex.bp)}</span>}
+      {ex.eq && <span className="tag">{t(ex.eq)}</span>}
+      {best > 0 && <span className="tag nocap">{t('Best:')} {fmtNum(best)} {S.unit}</span>}
+    </div>
+  )
+  const notesEl = <>
+    {/* Three notes can apply to one exercise and they are not interchangeable, so each keeps its
+        own line and its own icon: the plan's instruction (cfg.note, from the routine), the
+        standing fact about the movement (exNotes), and the message you pinned to yourself last
+        session. Today's own note is edited through the button in the header and shown last. */}
+    {cfg.note && <div className="exnote">{cfg.note}</div>}
+    {standingNote && <div className="exnote"><Icon name="info" style={{ fontSize: 13, marginInlineEnd: 5, verticalAlign: '-2px' }} />{standingNote}</div>}
+    {pinnedNote && <div className="exnote" style={{ color: 'var(--yellow)' }}>
+      <Icon name="pin" style={{ fontSize: 13, marginInlineEnd: 5, verticalAlign: '-2px' }} />
+      {t('From {0}:', fmtDate(pinnedNote.d, true))} {pinnedNote.note}
+    </div>}
+    {entry.note && <div className="exnote">{entry.note}</div>}
+  </>
+  const progEl = guidance && onProgressionSettings && <button type="button" className={'progline' + (plan.kind === 'deload' ? ' warn' : '')}
+      aria-label={t('Open exercise settings')} onClick={onProgressionSettings}>
+      <Icon name={plan.kind === 'up' ? 'arrowUp' : plan.kind === 'deload' ? 'arrowDown' : 'lightbulb'} />
+      <span><strong>{t(guidance.policyLabel)}</strong> · {t(...guidance.why)}</span>
+    </button>
   return <Root>
     {/* Animations set to Small: a thumbnail beside the name instead of a strip above it, so the
         first set is on screen without scrolling; a tap brings the full animation back. */}
@@ -709,7 +746,6 @@ function ExerciseBlock({ entryIdx, compact, dense, m1, editing, onToggle, onTogg
         <button className="iconbtn" aria-label={t('More')} title={t('More')} onClick={openMore}><Icon name="more" /></button>
       </div>
     </div>
-    {m1?.show && <WorkoutCurrentSet view={m1.view} name={m1.name} />}
     {/* Kept out of progression: by hand for this session (the ⋯ menu, with its undo right here),
         or by a deload or rehab routine, which owns that choice and offers no undo. On in every
         view, compact included: it changes what the next session is built from. */}
@@ -725,37 +761,19 @@ function ExerciseBlock({ entryIdx, compact, dense, m1, editing, onToggle, onTogg
     </div>}
     {/* compact view drops everything from here to the sets card — it is all still on the ⋯ menu
         (note, details, history, bar weight, progression) or is display-only (tags, "last time"). */}
-    {!dense && <>
-    <div className="row xb-tags" style={{ gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
-      {cardio && <span className="tag acc"><Icon name="figureRun" />{t('Cardio')}</span>}
-      {/* A unilateral exercise is logged per side directly (the L/R rows below for reps, a
-          "Left"/"Right" tag on each doubled row for a timed hold), so the old "{n} per side"
-          chip — which halved the combined total for display — is gone: the split is no longer
-          derived, it is what you enter. The tag only flags that this is per-side. */}
-      {!cardio && isPerSide(cfg) && <span className="tag acc nocap"><Icon name="sides" />{t('Per side')}</span>}
-      {(ex.tg || ex.bp) && <span className="tag">{t(MUSCLE_NAME[ex.tg] || ex.tg || ex.bp)}</span>}
-      {ex.eq && <span className="tag">{t(ex.eq)}</span>}
-      {best > 0 && <span className="tag nocap">{t('Best:')} {fmtNum(best)} {S.unit}</span>}
-    </div>
-    {/* Three notes can apply to one exercise and they are not interchangeable, so each keeps its
-        own line and its own icon: the plan's instruction (cfg.note, from the routine), the
-        standing fact about the movement (exNotes), and the message you pinned to yourself last
-        session. Today's own note is edited through the button in the header and shown last. */}
-    {cfg.note && <div className="exnote">{cfg.note}</div>}
-    {standingNote && <div className="exnote"><Icon name="info" style={{ fontSize: 13, marginInlineEnd: 5, verticalAlign: '-2px' }} />{standingNote}</div>}
-    {pinnedNote && <div className="exnote" style={{ color: 'var(--yellow)' }}>
-      <Icon name="pin" style={{ fontSize: 13, marginInlineEnd: 5, verticalAlign: '-2px' }} />
-      {t('From {0}:', fmtDate(pinnedNote.d, true))} {pinnedNote.note}
-    </div>}
-    {entry.note && <div className="exnote">{entry.note}</div>}
-    {planLine}
-    {lastTime}
-    {actionNode}
-    {guidance && onProgressionSettings && <button type="button" className={'progline' + (plan.kind === 'deload' ? ' warn' : '')}
-      aria-label={t('Open exercise settings')} onClick={onProgressionSettings}>
-      <Icon name={plan.kind === 'up' ? 'arrowUp' : plan.kind === 'deload' ? 'arrowDown' : 'lightbulb'} />
-      <span><strong>{t(guidance.policyLabel)}</strong> · {t(...guidance.why)}</span>
-    </button>}
+    {ordered ? <>
+      {m1?.show && <WorkoutCurrentSet view={m1.view} name={m1.name} />}
+      {lastTime}
+      {actionNode}
+      {notesEl}
+      {planLine}
+    </> : !dense && <>
+      {tagsEl}
+      {notesEl}
+      {planLine}
+      {lastTime}
+      {actionNode}
+      {progEl}
     </>}
     <div className="card xb-sets" style={{ marginTop: 10, marginBottom: 0 }}>
       {/* the header carries the same eff3/timed sizing as the rows, or the labels drift off their
@@ -837,6 +855,10 @@ function ExerciseBlock({ entryIdx, compact, dense, m1, editing, onToggle, onTogg
         <Button size="sm" icon="plus" onClick={onAddSet}>{t('Add set')}</Button>
       </div> : <Button size="sm" icon="plus" onClick={onAddSet}>{t('Add set')}</Button>}
     </div>
+    {ordered && <>
+      {progEl}
+      {tagsEl}
+    </>}
   </Root>
 }
 

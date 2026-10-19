@@ -97,7 +97,7 @@ body.no-tabbar .focus-card{background:none;box-shadow:none}
 .focus-timed{background:var(--m1-surface-2);border-radius:var(--m1-r-compact)}
 .focus-timed strong{font-size:22px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
 .focus-effort{border-radius:99px}
-.focus-card>.btn.primary,.focus-card>.focus-complete{margin-top:12px;min-height:56px;border-radius:var(--m1-r-ctl);font-size:18px;font-weight:800;letter-spacing:-.01em;background:var(--m1-action);color:var(--m1-on-action)}
+.focus-card>.btn.primary,.focus-card>.focus-complete{margin-top:12px;min-height:56px;border-radius:var(--m1-r-ctl);font-size:19px;font-weight:800;letter-spacing:-.01em;background:var(--m1-action);color:var(--m1-on-action)}
 .focus-card>.focus-complete:active{background:var(--m1-action);filter:brightness(.92)}
 /* Completed: the set is behind you, so the action steps back and is plainly a state, not a target.
    Locked behind an earlier set, or a timed set whose hold is the real action: outlined, not red. */
@@ -105,7 +105,7 @@ body.no-tabbar .focus-card{background:none;box-shadow:none}
 .focus-complete[data-state="locked"],.focus-complete[data-state="manual"],.focus-complete[data-state="running"]{background:transparent!important;color:var(--m1-text)!important;box-shadow:inset 0 0 0 1.5px var(--m1-muted)}
 .focus-complete[data-state="locked"]{opacity:.7}
 /* A timed set's Start is its action: Action Red while it is ready, the timer's own green once it runs. */
-.focus-timed .btn[data-state="ready"]{background:var(--m1-action);color:var(--m1-on-action);min-height:48px;border-radius:var(--m1-r-ctl);font-weight:800}
+.focus-timed .btn[data-state="ready"]{background:var(--m1-action);color:var(--m1-on-action);min-height:48px;border-radius:var(--m1-r-ctl);font-size:19px;font-weight:800}
 .focus-timed .btn[data-state="running"],.focus-timed.running .btn{background:color-mix(in srgb,var(--acc) 18%,transparent);color:var(--acc);box-shadow:inset 0 0 0 1.5px var(--acc);min-height:48px;border-radius:var(--m1-r-ctl);font-weight:800}
 .focus-secondary{margin-top:8px}
 .focus-secondary>.iconbtn,.focus-skip{border:0;background:var(--m1-surface);color:var(--m1-text-2);border-radius:var(--m1-r-ctl)}
