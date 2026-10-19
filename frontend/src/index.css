@@ -2186,3 +2186,15 @@ button.wl-summary{width:100%;padding:0 0 10px;text-align:start;border-radius:var
 [dir="rtl"] *{letter-spacing:0}
 .exfix-link{display:inline-flex;align-items:center;gap:5px;margin:14px 0 4px;color:var(--label-3);text-decoration:none}
 .list .similar-label{margin:16px 2px 6px;grid-column:1/-1}
+
+/* --- Today (M1): the first screen on the M1 canvas. Scoped to Today on purpose — body.today-canvas
+   is set by views/Home.jsx while it is mounted; the rest of the app keeps --bg until a later
+   phase moves it deliberately. Cards inside .today take the M1 surfaces, radii and gaps. --- */
+body.today-canvas,html:has(body.today-canvas){background:var(--m1-canvas)}
+.today .card{background:var(--m1-surface);border-radius:var(--m1-r-card);padding:var(--m1-pad-card);margin-bottom:var(--m1-card-gap)}
+.today .today-row{background:var(--m1-surface-2);border-radius:var(--m1-r-compact)}
+.today-hdr{margin:var(--m1-card-gap) 0 22px;align-items:center}
+.today-hdr h1{color:var(--m1-text);font-size:32px}
+.today-date{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--m1-muted);margin-bottom:6px}
+.today-primary{margin-bottom:calc(var(--m1-section-gap) - var(--m1-card-gap))}
+.today-secondary{display:block}

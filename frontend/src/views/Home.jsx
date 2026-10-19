@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../store/useStore.js'
 import { effectiveRoutines, effectiveRoutineIds, nextTrainingDay, streakWeeks, lastBW, setsDoneActive } from '../lib/history.js'
@@ -15,8 +15,14 @@ import { Button } from '../components/ui.jsx'
 import { tappable } from '../lib/use-sheet-keyboard.js'
 import { glyphOf } from '../lib/glyphs.js'
 import { dayNoteOf } from '../lib/day-notes.js'
+import { classifyToday } from '../lib/today-state.js'
+import TodayHeader from '../components/today/TodayHeader.jsx'
+import TodayPrimary from '../components/today/TodayPrimary.jsx'
 
-// Home = what to do now + a quick glance. Deep charts & history live in Stats.
+// Home = Today: what to do now + a quick glance. Deep charts & history live in Stats.
+// This view orchestrates: it reads the store and the domain helpers (schedule, rotation, queue,
+// completion) and hands the answers to the presentation components in components/today/. The
+// state of the day is classified in lib/today-state.js from facts decided here.
 export default function Home() {
   const nav = useNavigate()
   const S = useStore(s => s.S)
@@ -24,6 +30,11 @@ export default function Home() {
   // The banner switched off and the sync stuck: a dot on the gear (Settings → Show connection status).
   const trouble = useConnectionTrouble()
   const [weekOffset, setWeekOffset] = useState(0)
+  // Today is the first screen on the M1 canvas; the rest of the app keeps its own for now.
+  useEffect(() => {
+    document.body.classList.add('today-canvas')
+    return () => document.body.classList.remove('today-canvas')
+  }, [])
 
   const today = new Date()
   // A weekday can hold several routines. `todayRoutines` is the whole day; `routine` is the
@@ -33,9 +44,6 @@ export default function Home() {
   const todayName = todayRoutines.map(r => r.name).join(' + ')
   // A fulfilled pin (a coach session pinned to today and since done) reads as no override.
   const todayOvr = S.dayPlan[todayISO()] !== undefined && pinState(S, S.dayPlan[todayISO()]) !== 'done'
-  // An open editor on a saved workout (lib/session-edit.js) holds S.active too, but it is not a
-  // session in progress: the row takes you back to it as an edit, the way the tab bar does.
-  const editingSaved = !!S.active?.editingWorkoutId
   const bw = lastBW(S)
   const prevBW = S.bodyweight.length > 1 ? S.bodyweight[S.bodyweight.length - 2] : null
   const delta = bw && prevBW ? bw.w - prevBW.w : null
@@ -94,21 +102,33 @@ export default function Home() {
   const { done: doneThisWeek, planned: plannedPerWeek } = weekTally(S, todayISO())
   const bwPoints = S.bodyweight.slice(-30).map(b => ({ t: b.t || new Date(b.d).getTime(), y: b.w, d: b.d }))
 
-  // today's session shown right under the week strip
+  const state = classifyToday({ active: S.active, hasRoutines: S.routines.length > 0, hasPlanToday: todayRoutines.length > 0, doneToday })
+  // The words for the row, in the order the state would have them: the open session's name, else
+  // today's routines joined. The component adds the state's own phrasing around them.
+  const rowName = S.active ? S.active.name : todayName
+  const rescheduled = todayOvr && !!routine && !doneToday
+
+  // Today's row: resume what is open, else start today's plan, else assign a day.
   const onToday = () => { if (S.active) nav('/workout'); else if (todayRoutines.length) startFlow(effectiveRoutineIds(S, todayISO())); else dayOverrideSheet(todayISO()) }
   // A chip on the coach week's progress row starts that one routine, in any order. A session
   // already in progress wins, as on the today row — starting another would overwrite it.
   const onQueueStart = id => { if (S.active) nav('/workout'); else startFlow([id]) }
 
-  return <div className="narrow">
-    <div className="hdr">
-      <div><h1>{user ? t('Hi {0}', user.name) : 'openGym'}</h1><div className="sub">{today.toLocaleDateString(dateLocale(), { weekday: 'long', day: 'numeric', month: 'long' })}</div></div>
-      <button className="iconbtn" onClick={() => nav('/settings')} aria-label={trouble ? t('Settings') + ', ' + t('Connection problem') : t('Settings')}><Icon name="gear" />{trouble && <span className="tab-dot" aria-hidden="true" />}</button>
-    </div>
+  return <div className="narrow today" data-today-state={state.kind} data-today-mode={state.mode || undefined}>
+    <TodayHeader title={user ? t('Hi {0}', user.name) : 'openGym'} dateLabel={today.toLocaleDateString(dateLocale(), { weekday: 'long', day: 'numeric', month: 'long' })}
+      trouble={trouble} onSettings={() => nav('/settings')} />
 
+    {/* The command-center slot: one rendering per state (components/today/TodayPrimary.jsx). */}
+    <TodayPrimary state={state} name={rowName} doneName={doneToday?.name} glyph={routine ? glyphOf(routine.emoji) : 'moon'}
+      rescheduled={rescheduled} next={next} nextDay={next ? DAYN[next.weekday] : null}
+      onPress={onToday} onChoose={() => nav('/workout')} onStarter={starterPlanSheet} onBuild={() => nav('/plan')} />
+
+    {/* Everything below is the existing Home, in its existing form, until later phases move it
+        into the M1 modules: the week, the gym check-in, body weight and the streak. */}
+    <div className="today-secondary">
     <div className="card">
       {/* A coach week runs by order, not by weekday, so its progress row stands in for the
-          seven dots (components/QueueRow.jsx). The today row below stays as it is: the queue's
+          seven dots (components/QueueRow.jsx). The today row above stays as it is: the queue's
           next session reaches it through effectiveRoutineIds like any planned routine. */}
       {rotating ? (queue ? <QueueRow S={S} today={todayISO()} onStart={onQueueStart} managed={managedQueue} /> : <div className="empty">
         {t('No rotation yet. Add routines to it in Plan.')}
@@ -121,41 +141,6 @@ export default function Home() {
         </div>
         <div className="week">{strip}</div>
       </>}
-      {/* Once today's session is logged the row stops asking for it. The week strip already
-          knew (its dot goes 'done'); this row did not, so a finished day kept showing the
-          routine name behind a green Start tag and read as still outstanding (issue #4).
-          An in-progress session still wins — that one is happening right now. Tapping the
-          row keeps working, so a second session in one day is a tap away, just not urged. */}
-      <div className="today-row" {...tappable(onToday)}>
-        <div className="row" style={{ gap: 9, minWidth: 0 }}>
-          <span className="lrow-i" style={{ background: S.active ? 'var(--orange)' : doneToday ? 'var(--surface-3)' : routine ? 'var(--acc)' : 'var(--surface-3)' }}>
-            <Icon name={S.active ? (editingSaved ? 'pencil' : 'play') : doneToday ? 'checkCircle' : routine ? glyphOf(routine.emoji) : 'moon'}
-              style={doneToday && !S.active ? { color: 'var(--green)' } : undefined} />
-          </span>
-          <div style={{ minWidth: 0 }}>
-            <div className="lbl2">{t('Today')}</div>
-            <div className="ttl">{S.active ? (editingSaved ? S.active.name : t('{0} (in progress)', S.active.name))
-              : doneToday ? (doneToday.name ? t('{0} (done)', doneToday.name) : t('Workout done'))
-              : routine ? todayName : t('Rest day')}{todayOvr && routine && !doneToday ? ' · ' + t('rescheduled') : ''}</div>
-            {next && !doneToday && <div className="ss">{t('Next session: {0}, {1}', t(DAYN[next.weekday]), next.routine.name)}</div>}
-          </div>
-        </div>
-        {S.active ? <span className="tag" style={{ color: 'var(--orange)', background: 'color-mix(in srgb,var(--orange) 16%,transparent)' }}>{editingSaved ? t('Edit') : t('Resume')}</span>
-          : doneToday ? <span className="tag" style={{ color: 'var(--green)', background: 'color-mix(in srgb,var(--green) 16%,transparent)' }}>{t('Done')}</span>
-          : routine ? <span className="tag acc">{t('Start')}</span>
-          : <Icon name="plus" className="chev" />}
-      </div>
-      {/* The row above starts today's plan in one tap, and so does the Start button in the tab
-          bar — which is the whole problem when you want something else. Both jump straight into
-          the planned session whenever there is one, so the Start screen (a freestyle session,
-          and your other routines) is only reachable on a day with nothing planned. The one other
-          way in, "Choose a different workout" on the weigh-in sheet, does not exist when the
-          weigh-in is switched off. This is that door, and it starts nothing on its own. */}
-      {!S.active && <div style={{ display: 'flex', justifyContent: 'center', marginTop: 4 }}>
-        <Button size="sm" variant="ghost" className="dim" icon="swap" onClick={() => nav('/workout')}>
-          {t('Choose a different workout')}
-        </Button>
-      </div>}
     </div>
 
     {/* Jump to the gym check-in cards (QR membership codes). Shown here as a quick tap on
@@ -172,18 +157,6 @@ export default function Home() {
           </div>
           <Icon name="chevronRight" className="chev" />
         </div>
-      </div>
-    )}
-
-    {!S.routines.length && !S.active && (
-      <div className="card">
-        <div className="row" style={{ gap: 10, marginBottom: 6 }}>
-          <span className="lrow-i"><Icon name="calendar" /></span>
-          <div className="big" style={{ fontSize: 22 }}>{t('Welcome!')}</div>
-        </div>
-        <div className="muted small" style={{ marginBottom: 12 }}>{t('Set up your weekly routine to get going, or grab a ready-made starter plan.')}</div>
-        <Button variant="primary" icon="clipboard" onClick={starterPlanSheet}>{t('Load starter plan')}</Button>
-        <div style={{ height: 8 }} /><Button onClick={() => nav('/plan')}>{t('Build my own plan')}</Button>
       </div>
     )}
 
@@ -234,6 +207,7 @@ export default function Home() {
         </div>
         <Icon name="calendar" className="chev" style={{ fontSize: 20 }} />
       </div>
+    </div>
     </div>
   </div>
 }
