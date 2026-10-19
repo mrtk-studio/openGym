@@ -54,3 +54,15 @@ export function recoveryContext(workouts, focus, now = Date.now()) {
   }
   return null
 }
+
+/**
+ * How to name the day of the next session on a rest day, from the two dates alone. `named` is
+ * false for a rotation-managed pass, which has no weekday of its own (lib/rotation.js): that one
+ * is only ever "tomorrow" or a date, never "Wednesday".
+ *   { key: 'tomorrow' } | { key: 'weekday', weekday } | { key: 'date', iso }
+ */
+export function nextWhen(todayIso, nextIso, { named = true } = {}) {
+  const days = Math.round((new Date(nextIso + 'T12:00:00') - new Date(todayIso + 'T12:00:00')) / 86400000)
+  if (days === 1) return { key: 'tomorrow' }
+  return named ? { key: 'weekday', weekday: new Date(nextIso + 'T12:00:00').getDay() } : { key: 'date', iso: nextIso }
+}

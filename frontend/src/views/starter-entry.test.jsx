@@ -31,9 +31,12 @@ afterEach(() => {
   host.remove()
 })
 
-const starterButton = () => [...host.querySelectorAll('button')].find(b => b.textContent === 'Load starter plan')
+// Home's welcome (M1) words the same action "Choose a routine"; Plan keeps "Load starter plan".
+let label = 'Load starter plan'
+const starterButton = () => [...host.querySelectorAll('button')].find(b => b.textContent === label)
 
-describe.each([['Home', Home], ['Plan', Plan]])('%s empty state', (_name, View) => {
+describe.each([['Home', Home, 'Choose a routine'], ['Plan', Plan, 'Load starter plan']])('%s empty state', (_name, View, text) => {
+  beforeEach(() => { label = text })
   it('opens the starter plan chooser instead of loading one plan blind', () => {
     act(() => root.render(<View />))
     const button = starterButton()

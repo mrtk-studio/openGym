@@ -44,8 +44,6 @@ const mount = () => act(() => root.render(<Home />))
 const page = () => host.querySelector('.today')
 const state = () => page().dataset.todayState
 const mode = () => page().dataset.todayMode
-const title = () => host.querySelector('.today-row .ttl')?.textContent
-const tag = () => host.querySelector('.today-row .tag')?.textContent
 const hero = () => host.querySelector('.m1-hero')
 const heroNames = () => [...hero().querySelectorAll('.m1-hero-title, .m1-hero-names li')].map(e => e.textContent)
 const heroStatus = () => hero().querySelector('.m1-status').textContent
@@ -54,20 +52,16 @@ const text = el => el.textContent
 const buttonByText = s => [...host.querySelectorAll('button')].find(b => b.textContent.includes(s))
 
 describe('Today — the state of the day', () => {
-  it('a new user (no routines, nothing open) gets the welcome card, not a fake "Rest day" row', () => {
+  it('a new user (no routines, nothing open) gets the welcome, not a fake "Rest day"', () => {
     setS({ routines: [], week: {} }); mount()
     expect(state()).toBe('new-user')
-    expect(host.querySelector('.today-row')).toBeNull()
-    expect(text(host.querySelector('.today-primary'))).toContain('Welcome!')
-    act(() => { buttonByText('Load starter plan').click() })
-    expect(starterPlanSheet).toHaveBeenCalled()
-    act(() => { buttonByText('Build my own plan').click() })
-    expect(nav).toHaveBeenCalledWith('/plan')
+    expect(host.querySelector('.m1-rest')).toBeNull()
+    expect(host.querySelector('.m1-welcome')).not.toBeNull()
   })
 
   it('a new user can still reach the freestyle start screen', () => {
     setS({ routines: [], week: {} }); mount()
-    act(() => { buttonByText('Choose a different workout').click() })
+    act(() => { buttonByText('Train without a plan').click() })
     expect(nav).toHaveBeenCalledWith('/workout')
   })
 
@@ -95,12 +89,12 @@ describe('Today — the state of the day', () => {
     expect(heroNames()).toEqual(['Core']); expect(heroStatus()).toBe('Rescheduled')
   })
 
-  it('a rest day says so, names the next session, and the row opens the day sheet', () => {
+  it('a rest day says so, names the next session, and today stays assignable from the week strip', () => {
     setS({ week: { [(WD + 2) % 7]: ['r1'] } }); mount()
     expect(state()).toBe('rest')
-    expect(title()).toBe('Rest day')
-    expect(host.querySelector('.today-row .ss').textContent).toMatch(/^Next session: \w+, Push$/)
-    act(() => { host.querySelector('.today-row').click() })
+    expect(host.querySelector('.m1-rest-title').textContent).toBe('Recover.')
+    expect(host.querySelector('.m1-next-name').textContent).toBe('Push')
+    act(() => { host.querySelector('.wday.today').click() })
     expect(dayOverrideSheet).toHaveBeenCalledWith(todayISO())
     expect(startFlow).not.toHaveBeenCalled()
   })
@@ -163,7 +157,7 @@ describe('Today — completed today', () => {
   it('a workout logged on a rest day reads as done, with its name', () => {
     setS({ week: {}, workouts: [loggedToday('r2', 'Core')] }); mount()
     expect(state()).toBe('rest')
-    expect(title()).toBe('Core (done)')
+    expect(host.querySelector('.m1-rest-line').textContent).toBe('Workout completed today.')
   })
 })
 
@@ -181,13 +175,13 @@ describe('Today — rotation and the coach / planner queue', () => {
   it('a queue that has not started yet is a rest day that names the next session', () => {
     setS({ week: {}, queue: queue({ startsOn: daysFromToday(2) }) }); mount()
     expect(state()).toBe('rest')
-    expect(host.querySelector('.today-row .ss').textContent).toMatch(/^Next session: \w+, Push$/)
+    expect(host.querySelector('.m1-next-name').textContent).toBe('Push')
   })
 
   it('a rotation-managed pass never names a weekday on its empty gap', () => {
     setS({ week: {}, queue: queue({ startsOn: daysFromToday(2), rotationId: 'rot' }), rotation: { id: 'rot', sequence: ['r1', 'r2'], label: 'W1' }, scheduleMode: 'rotation' }); mount()
     expect(state()).toBe('rest')
-    expect(host.querySelector('.today-row .ss')).toBeNull()
+    expect(host.querySelector('.m1-when').textContent).not.toMatch(/day$/)
   })
 
   it('rotation chosen with nothing built is a rest day with its empty state and a way to Plan', () => {

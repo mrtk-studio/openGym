@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../store/useStore.js'
 import { effectiveRoutines, effectiveRoutineIds, nextTrainingDay, streakWeeks, lastBW, setsDoneActive } from '../lib/history.js'
-import { fmtNum, fmtDate, todayISO, isoOf, weekStartOf, weekDayOffset, DAYS, DAYN } from '../lib/format.js'
+import { fmtNum, fmtDate, todayISO, isoOf, weekStartOf, weekDayOffset, DAYS } from '../lib/format.js'
 import { t, tn, dateLocale } from '../lib/i18n.js'
 import { bwSheet, goalSheet, dayOverrideSheet, calendarSheet, startFlow, starterPlanSheet, bwDeltaColor, weighInsSheet } from '../sheets.jsx'
 import LineChart from '../components/LineChart.jsx'
@@ -15,7 +15,7 @@ import { Button } from '../components/ui.jsx'
 import { tappable } from '../lib/use-sheet-keyboard.js'
 import { dayNoteOf } from '../lib/day-notes.js'
 import { classifyToday } from '../lib/today-state.js'
-import { sessionSummary, recoveryContext } from '../lib/today-session.js'
+import { sessionSummary, recoveryContext, nextWhen } from '../lib/today-session.js'
 import { activeProgress, currentPosition } from '../lib/today-active.js'
 import TodayHeader from '../components/today/TodayHeader.jsx'
 import TodayPrimary from '../components/today/TodayPrimary.jsx'
@@ -95,8 +95,6 @@ export default function Home() {
   // Ownership, not mere presence of a rotationId: a stale id left over from a rebuilt rotation
   // would otherwise still read as "this app manages it" (lib/rotation.js).
   const managedQueue = !!liveQ && !!S.rotation && liveQ.rotationId === S.rotation.id
-  // On a rest day, saying when you train next beats leaving the row as a full stop.
-  const next = !S.active && !todayRoutines.length && !(rotating && !plannerQueue) ? nextTrainingDay(S, todayISO()) : null
   // The streak card's fraction: this calendar week's workouts over the weekdays with a plan, or,
   // in a coach week, the queue's sessions and your own days together (lib/queue.js weekTally).
   const { done: doneThisWeek, planned: plannedPerWeek } = weekTally(S, todayISO())
@@ -118,7 +116,22 @@ export default function Home() {
     ? { start: S.active.start, progress: activeProgress(S.active), current: currentPosition(S.active), week: { done: doneThisWeek, planned: plannedPerWeek } }
     : null
   const rowName = S.active?.name
+  // Rest: when you train next (nextTrainingDay, the same resolver the whole app uses, so overrides,
+  // a coach queue and combined days are already in it) and how long since its main muscle was
+  // trained. A rotation-managed pass has no weekday of its own, so it is only "tomorrow" or a date,
+  // and with no pass built there is nothing to name. Recovery is the same history read Planned uses.
+  let rest = null
+  if (state.kind === 'rest') {
+    const named = !(rotating && !plannerQueue)
+    const n = named || liveQ ? nextTrainingDay(S, todayISO()) : null
+    const sum = n ? sessionSummary(n.routines, S.customEx) : null
+    rest = {
+      next: n && { when: nextWhen(todayISO(), n.iso, { named }), names: n.routines.map(r => r.name), count: sum.count, focus: sum.focus },
+      recovery: sum ? recoveryContext(S.workouts, sum.focus) : null,
+    }
+  }
   // A running session takes the page: the weekday strip folds away so it doesn't compete with it.
+  const newUser = state.kind === 'new-user'
   const foldWeek = state.kind === 'active' && state.mode === 'live'
   const rescheduled = todayOvr && !!routine && !doneToday
 
@@ -152,16 +165,18 @@ export default function Home() {
       trouble={trouble} onSettings={() => nav('/settings')} />
 
     {/* The command-center slot: one rendering per state (components/today/TodayPrimary.jsx). */}
-    <TodayPrimary state={state} planned={planned} active={live} name={rowName} doneName={doneToday?.name}
-      rescheduled={rescheduled} next={next} nextDay={next ? DAYN[next.weekday] : null}
-      onPress={onToday} onChoose={() => nav('/workout')} onStarter={starterPlanSheet} onBuild={() => nav('/plan')} />
+    <TodayPrimary state={state} planned={planned} active={live} rest={rest} name={rowName}
+      rescheduled={rescheduled}
+      onPress={onToday} onChoose={() => nav('/workout')} onStarter={starterPlanSheet} onBuild={() => nav('/plan')} onPlan={() => nav('/plan')} />
 
     {/* Everything below is the existing Home, in its existing form, until later phases move it
-        into the M1 modules: the week, the gym check-in, body weight and the streak. */}
+        into the M1 modules: the week, the gym check-in, body weight and the streak. A new user
+        has none of that to look at yet — an empty week, a blank weight curve, a streak of 0 — so
+        only the gym check-in, which is about the gym and not the plan, stays under the welcome. */}
     <div className="today-secondary">
-    {foldWeek
+    {!newUser && (foldWeek
       ? <details className="card today-fold"><summary><span>{t('Week')}</span><Icon name="chevronRight" /></summary>{weekBody}</details>
-      : <div className="card">{weekBody}</div>}
+      : <div className="card">{weekBody}</div>)}
 
     {/* Jump to the gym check-in cards (QR membership codes). Shown here as a quick tap on
         arrival at the gym; folds away per user via the "Gym check-in" switch in Settings. */}
@@ -180,7 +195,7 @@ export default function Home() {
       </div>
     )}
 
-    {S.showWeightCard !== false && <div className="card">
+    {!newUser && S.showWeightCard !== false && <div className="card">
       <div className="row between bw-head" style={{ marginBottom: 6 }}>
         <h2 style={{ margin: 0 }}>{t('Body weight')}</h2>
         <div className="row" style={{ gap: 8 }}>
@@ -216,7 +231,7 @@ export default function Home() {
         : t("No weigh-ins yet. Log your weight to start the curve (we also ask before every workout).")}</div>}
     </div>}
 
-    <div className="card tappable" style={{ cursor: 'pointer' }} {...tappable(() => calendarSheet())}>
+    {!newUser && <div className="card tappable" style={{ cursor: 'pointer' }} {...tappable(() => calendarSheet())}>
       <div className="row between">
         <div>
           <div className="row" style={{ gap: 7, fontSize: 22, fontWeight: 600, letterSpacing: '-.021em' }}>
@@ -227,7 +242,7 @@ export default function Home() {
         </div>
         <Icon name="calendar" className="chev" style={{ fontSize: 20 }} />
       </div>
-    </div>
+    </div>}
     </div>
   </div>
 }

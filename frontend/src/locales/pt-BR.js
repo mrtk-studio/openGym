@@ -4,6 +4,14 @@
 import pt from './pt.js'
 
 export const PT_BR_OVERRIDES = {
+  'Recover.': 'Recupere.',
+  "Let's build your first week.": 'Vamos montar sua primeira semana.',
+  'Choose a routine': 'Escolha uma rotina',
+  'Choose your training days': 'Escolha seus dias de treino',
+  'Start your first workout': 'Comece seu primeiro treino',
+  'Welcome': 'Bem-vindo',
+  'Tomorrow': 'Amanhã',
+  'Workout completed today.': 'Treino de hoje concluído.',
   'Workout in progress': 'Treino em andamento',
   'Editing a saved workout': 'Editando um treino salvo',
   'Log a few sessions and your recovery shows up here.': 'Registre algumas sessões e sua recuperação aparece aqui.',

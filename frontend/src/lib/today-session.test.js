@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { sessionSummary, recoveryContext } from './today-session.js'
+import { sessionSummary, recoveryContext, nextWhen } from './today-session.js'
 import { musclesOf } from './muscles.js'
 import { EXIDX } from './exercises.js'
 
@@ -59,5 +59,22 @@ describe('recoveryContext', () => {
   })
   it('never goes negative for a workout dated after now', () => {
     expect(recoveryContext([w(CHEST, -5)], ['chest'], NOW).hours).toBe(0)
+  })
+})
+
+describe('nextWhen', () => {
+  it('is tomorrow for the next day, however the plan is kept', () => {
+    expect(nextWhen('2026-03-10', '2026-03-11')).toEqual({ key: 'tomorrow' })
+    expect(nextWhen('2026-03-10', '2026-03-11', { named: false })).toEqual({ key: 'tomorrow' })
+  })
+  it('names the weekday further out', () => {
+    expect(nextWhen('2026-03-10', '2026-03-13')).toEqual({ key: 'weekday', weekday: 5 })
+  })
+  it('gives a date, never a weekday, for a rotation pass', () => {
+    expect(nextWhen('2026-03-10', '2026-03-13', { named: false })).toEqual({ key: 'date', iso: '2026-03-13' })
+  })
+  it('crosses a month and a daylight-saving change', () => {
+    expect(nextWhen('2026-03-28', '2026-03-29')).toEqual({ key: 'tomorrow' })
+    expect(nextWhen('2026-03-31', '2026-04-01')).toEqual({ key: 'tomorrow' })
   })
 })

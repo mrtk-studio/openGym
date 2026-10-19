@@ -22,13 +22,14 @@ afterEach(() => { act(() => root.unmount()); host.remove() })
 
 const mountWith = showWeightCard => {
   useStore.setState(s => ({
-    S: { ...s.S, routines: [], workouts: [], bodyweight: [], dayPlan: {}, week: {}, active: null, showWeightCard },
+    S: { ...s.S, routines: [{ id: 'r', name: 'Push', emoji: null, ex: [] }], workouts: [], bodyweight: [], dayPlan: {}, week: {}, active: null, showWeightCard },
     user: null,
   }))
   act(() => root.render(<Home />))
 }
 const weightHeading = () => [...host.querySelectorAll('h2')].find(el => el.textContent === 'Body weight')
 
+// (With a routine on the books: a brand-new profile sees the welcome and no cards, see Home.rest-newuser.test.)
 describe('Home body-weight card preference', () => {
   it('shows the card for legacy profiles without the preference', () => {
     mountWith(undefined)
