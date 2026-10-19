@@ -5,7 +5,6 @@ import { effectiveRoutines, effectiveRoutineIds, nextTrainingDay, streakWeeks, l
 import { fmtNum, fmtDate, todayISO, isoOf, weekStartOf, weekDayOffset, DAYS } from '../lib/format.js'
 import { t, tn, dateLocale } from '../lib/i18n.js'
 import { bwSheet, goalSheet, dayOverrideSheet, calendarSheet, startFlow, starterPlanSheet, bwDeltaColor, weighInsSheet } from '../sheets.jsx'
-import LineChart from '../components/LineChart.jsx'
 import Icon from '../components/Icon.jsx'
 import QueueRow from '../components/QueueRow.jsx'
 import { queueOf, queueView, weekTally, pinState } from '../lib/queue.js'
@@ -98,7 +97,6 @@ export default function Home() {
   // The streak card's fraction: this calendar week's workouts over the weekdays with a plan, or,
   // in a coach week, the queue's sessions and your own days together (lib/queue.js weekTally).
   const { done: doneThisWeek, planned: plannedPerWeek } = weekTally(S, todayISO())
-  const bwPoints = S.bodyweight.slice(-30).map(b => ({ t: b.t || new Date(b.d).getTime(), y: b.w, d: b.d }))
 
   const state = classifyToday({ active: S.active, hasRoutines: S.routines.length > 0, hasPlanToday: todayRoutines.length > 0, doneToday })
   // What the Planned command center shows, from the same effective routines Start uses: their
@@ -169,43 +167,42 @@ export default function Home() {
       rescheduled={rescheduled}
       onPress={onToday} onChoose={() => nav('/workout')} onStarter={starterPlanSheet} onBuild={() => nav('/plan')} onPlan={() => nav('/plan')} />
 
-    {/* Everything below is the existing Home, in its existing form, until later phases move it
-        into the M1 modules: the week, the gym check-in, body weight and the streak. A new user
-        has none of that to look at yet — an empty week, a blank weight curve, a streak of 0 — so
-        only the gym check-in, which is about the gym and not the plan, stays under the welcome. */}
+    {/* Everything below the command center is supporting, and recedes: one quiet group of rows —
+        the week, the gym check-in, body weight and the streak — instead of four cards. What each
+        shows, and whether it shows at all, depends on the state:
+          week      open on Planned and Rest, folded under a live session, hidden for a new user
+          check-in  always (it is about the gym, not the plan); the only row a new user gets
+          weight    a compact row, no chart (that is in Stats), hidden for a new user
+          streak    a one-line row; its "this week" fraction only where no tile shows it
+        Behaviour of every row is as it was. */}
     <div className="today-secondary">
+    <div className="m1-group">
     {!newUser && (foldWeek
-      ? <details className="card today-fold"><summary><span>{t('Week')}</span><Icon name="chevronRight" /></summary>{weekBody}</details>
-      : <div className="card">{weekBody}</div>)}
+      ? <details className="m1-g-week fold"><summary><span>{t('Week')}</span><Icon name="chevronRight" /></summary>{weekBody}</details>
+      : <section className="m1-g-week">{weekBody}</section>)}
 
     {/* Jump to the gym check-in cards (QR membership codes). Shown here as a quick tap on
         arrival at the gym; folds away per user via the "Gym check-in" switch in Settings. */}
     {S.checkIn !== false && (
-      <div className="card tappable" style={{ cursor: 'pointer' }} {...tappable(() => nav('/checkin'))}>
-        <div className="row between">
-          <div className="row" style={{ gap: 9 }}>
-            <span className="lrow-i" style={{ background: 'var(--blue)' }}><Icon name="qr" /></span>
-            <div>
-              <div className="lbl2">{t('At the gym')}</div>
-              <div className="ttl">{t('Check in')}</div>
-            </div>
-          </div>
-          <Icon name="chevronRight" className="chev" />
-        </div>
+      <div className="m1-row tappable" {...tappable(() => nav('/checkin'))}>
+        <span className="m1-row-ic"><Icon name="qr" /></span>
+        <span className="m1-row-t">{t('Check in')}</span>
+        <span className="m1-row-sub">{t('At the gym')}</span>
+        <Icon name="chevronRight" className="chev" />
       </div>
     )}
 
-    {!newUser && S.showWeightCard !== false && <div className="card">
-      <div className="row between bw-head" style={{ marginBottom: 6 }}>
-        <h2 style={{ margin: 0 }}>{t('Body weight')}</h2>
-        <div className="row" style={{ gap: 8 }}>
-          <Button size="sm" icon="target" style={S.targetW ? { color: 'var(--yellow)' } : undefined} onClick={goalSheet}>{S.targetW ? fmtNum(S.targetW) : t('Goal')}</Button>
-          <Button size="sm" icon="plus" onClick={() => bwSheet()}>{t('Log')}</Button>
+    {!newUser && S.showWeightCard !== false && <div className="m1-bw">
+      <div className="row between bw-head">
+        <h2>{t('Body weight')}</h2>
+        <div className="row" style={{ gap: 6 }}>
+          <Button size="sm" variant="ghost" icon="target" className={S.targetW ? 'm1-goal' : undefined} onClick={goalSheet}>{S.targetW ? fmtNum(S.targetW) : t('Goal')}</Button>
+          <Button size="sm" variant="tinted" icon="plus" onClick={() => bwSheet()}>{t('Log')}</Button>
         </div>
       </div>
       {bw ? <>
-        <div className="row" style={{ gap: 8, alignItems: 'baseline' }}>
-          <div className="big">{fmtNum(bw.w)} <span className="muted" style={{ fontSize: '1rem' }}>{S.unit}</span></div>
+        <div className="row m1-bw-now">
+          <div className="m1-bw-val">{fmtNum(bw.w)} <span>{S.unit}</span></div>
           {/* only when it actually moved — an unchanged weight used to read as "− 0" */}
           {!!delta && (
             <span className="small row" style={{ gap: 2, fontWeight: 500, color: bwDeltaColor(delta, bw.w) }}>
@@ -215,15 +212,14 @@ export default function Home() {
           )}
           <span className="dim small" style={{ marginInlineStart: 'auto' }}>{fmtDate(bw.d, true)}</span>
         </div>
-        {S.targetW && (
-          <div className="small row" style={{ color: 'var(--yellow)', marginTop: 4, gap: 5 }}>
-            <Icon name="target" style={{ fontSize: 13 }} />
-            <span>{t('Goal')} {fmtNum(S.targetW)} {S.unit} · {Math.abs(S.targetW - bw.w) < 0.05 ? t('reached!') : t(S.targetW > bw.w ? '{0} to gain' : '{0} to lose', fmtNum(Math.abs(S.targetW - bw.w)) + ' ' + S.unit)}</span>
-          </div>
-        )}
-        <div className="chart" style={{ marginTop: 8 }}><LineChart points={bwPoints} h={130} unit={S.unit} goal={S.targetW} /></div>
-        {/* every weigh-in, week by week with its average (Discord 'Weight') */}
-        <div className="row" style={{ justifyContent: 'flex-end', marginTop: 4 }}>
+        {/* every weigh-in, week by week with its average (Discord 'Weight'); the curve itself lives in Stats */}
+        <div className="row between m1-bw-foot">
+          {S.targetW ? (
+            <div className="small row m1-goal" style={{ gap: 5 }}>
+              <Icon name="target" style={{ fontSize: 13 }} />
+              <span>{Math.abs(S.targetW - bw.w) < 0.05 ? t('reached!') : t(S.targetW > bw.w ? '{0} to gain' : '{0} to lose', fmtNum(Math.abs(S.targetW - bw.w)) + ' ' + S.unit)}</span>
+            </div>
+          ) : <span />}
           <Button size="sm" variant="ghost" trailingIcon="chevronRight" onClick={weighInsSheet}>{t('All weigh-ins')}</Button>
         </div>
       </> : <div className="muted small">{S.weighIn === false
@@ -231,18 +227,18 @@ export default function Home() {
         : t("No weigh-ins yet. Log your weight to start the curve (we also ask before every workout).")}</div>}
     </div>}
 
-    {!newUser && <div className="card tappable" style={{ cursor: 'pointer' }} {...tappable(() => calendarSheet())}>
-      <div className="row between">
-        <div>
-          <div className="row" style={{ gap: 7, fontSize: 22, fontWeight: 600, letterSpacing: '-.021em' }}>
-            <Icon name="flame" style={{ color: 'var(--orange)' }} />
-            {t('{0} week streak', streakWeeks(S))}
-          </div>
-          <div className="muted small" style={{ marginTop: 2 }}>{doneThisWeek}{plannedPerWeek ? ' / ' + plannedPerWeek : ''} {t('this week')} · {tn('{0} workout total', '{0} workouts total', S.workouts.length)}</div>
-        </div>
-        <Icon name="calendar" className="chev" style={{ fontSize: 20 }} />
-      </div>
+    {/* The streak and the running total. The week's fraction is on the tile whenever one shows;
+        it stays here only on a rest day, where nothing else says it. With no workouts logged there
+        is nothing to count and no calendar to open, so the row is not there. */}
+    {!newUser && S.workouts.length > 0 && <div className="m1-row m1-streak tappable" {...tappable(() => calendarSheet())}>
+      <span className="m1-row-ic warm"><Icon name={streakWeeks(S) > 0 ? 'flame' : 'calendar'} /></span>
+      <span className="m1-row-t">{streakWeeks(S) > 0 ? t('{0} week streak', streakWeeks(S)) : tn('{0} workout total', '{0} workouts total', S.workouts.length)}</span>
+      <span className="m1-row-sub">{state.kind === 'rest'
+        ? `${doneThisWeek}${plannedPerWeek ? ' / ' + plannedPerWeek : ''} ${t('this week')}`
+        : streakWeeks(S) > 0 ? tn('{0} workout total', '{0} workouts total', S.workouts.length) : ''}</span>
+      <Icon name="chevronRight" className="chev" />
     </div>}
+    </div>
     </div>
   </div>
 }

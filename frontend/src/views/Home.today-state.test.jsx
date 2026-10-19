@@ -201,20 +201,20 @@ describe('Today — rotation and the coach / planner queue', () => {
 
 describe('Today — what moved below the primary slot is still there', () => {
   it('keeps the week strip (with browsing), check-in, body weight and the streak, after the primary slot', () => {
-    setS({ weighIn: undefined }); mount()
+    setS({ weighIn: undefined, workouts: [{ id: 'w', d: '2020-01-01', start: 1, end: 2, routineIds: ['r1'], routineId: 'r1', name: 'Push', entries: [] }] }); mount()
     const order = [...page().children].map(c => c.className)
     expect(order[1]).toContain('today-primary')
     expect(host.querySelectorAll('.today-secondary .week .wday')).toHaveLength(7)
     expect(host.textContent).toContain('Check in')
     expect(host.textContent).toContain('Body weight')
-    expect(host.textContent).toMatch(/week streak/)
+    expect(host.textContent).toMatch(/workouts? total/)
     act(() => { host.querySelector('button[aria-label="Next week"]').click() })
     expect(host.querySelector('.today-secondary .small.muted').textContent).not.toBe('This week')
   })
 
   it('check-in goes to /checkin and the gear to /settings', () => {
     setS(); mount()
-    act(() => { [...host.querySelectorAll('.card.tappable')].find(c => c.textContent.includes('Check in')).click() })
+    act(() => { [...host.querySelectorAll('.m1-row')].find(c => c.textContent.includes('Check in')).click() })
     expect(nav).toHaveBeenCalledWith('/checkin')
     act(() => { host.querySelector('.today-hdr .iconbtn').click() })
     expect(nav).toHaveBeenCalledWith('/settings')

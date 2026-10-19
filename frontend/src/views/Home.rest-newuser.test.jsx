@@ -136,7 +136,7 @@ describe('Rest Today — the next session', () => {
 
   it('keeps the week strip, open, and today in it assignable', () => {
     setS(); mount()
-    expect(host.querySelector('.today-fold')).toBeNull()
+    expect(host.querySelector('details.m1-g-week')).toBeNull()
     expect(host.querySelectorAll('.today-secondary .week .wday')).toHaveLength(7)
     act(() => { host.querySelector('.wday.today').click() })
     expect(dayOverrideSheet).toHaveBeenCalledWith(todayISO())
@@ -226,7 +226,7 @@ describe('New User Today', () => {
 
   it('keeps the gym check-in below the welcome, and drops it with its setting', () => {
     setNew(); mount()
-    const w = host.querySelector('.m1-welcome'), c = [...host.querySelectorAll('.card')].find(x => x.textContent.includes('Check in'))
+    const w = host.querySelector('.m1-welcome'), c = [...host.querySelectorAll('.m1-row')].find(x => x.textContent.includes('Check in'))
     expect(c).toBeTruthy()
     expect(w.compareDocumentPosition(c) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     setNew({ checkIn: false }); mount()

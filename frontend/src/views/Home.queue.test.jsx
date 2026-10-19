@@ -67,7 +67,14 @@ const heroTitle = () => {
 // Rest is its own calm hero (components/today/TodayRestHero.jsx); a freestyle workout done on it reads "(done)".
 const restTitle = () => host.querySelector('.m1-rest') ? (host.querySelector('.m1-rest-line .icn') ? 'Rest day (done)' : 'Rest day') : undefined
 const todayTitle = () => heroTitle() ?? restTitle()
-const card = () => [...host.querySelectorAll('.card .muted.small')].map(e => e.textContent).find(x => x.includes('this week'))
+// The week's tally is on the hero's tile (a rest day keeps it in the streak row); the running total is
+// the streak row's. Both are read back into the line the streak card used to carry.
+const card = () => {
+  const tile = host.querySelector('.m1-tile-week .m1-metric')?.textContent
+  const row = host.querySelector('.m1-streak')
+  const total = (row.querySelector('.m1-row-t').textContent + ' ' + row.querySelector('.m1-row-sub').textContent).match(/\d+ workouts? total/)?.[0]
+  return tile ? `${tile} this week · ${total}` : undefined
+}
 
 describe('Home — coach week progress row', () => {
   it('replaces the weekday dots with one chip per session, in slot order, and lights the first', () => {

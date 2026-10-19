@@ -172,10 +172,10 @@ describe('Planned Today — Recovery Context', () => {
 })
 
 describe('Planned Today — the rest of Today is still there', () => {
-  it('keeps the legacy modules below the command center', () => {
-    setS(); mount()
+  it('keeps the supporting modules below the command center', () => {
+    setS({ workouts: [{ id: 'w', d: '2020-01-01', start: 1, end: 2, routineIds: ['r1'], routineId: 'r1', name: 'Push', entries: [] }] }); mount()
     expect(host.querySelectorAll('.today-secondary .week .wday')).toHaveLength(7)
     expect(host.textContent).toContain('Check in')
-    expect(host.textContent).toMatch(/week streak/)
+    expect(host.textContent).toMatch(/workouts? total/)
   })
 })

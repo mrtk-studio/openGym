@@ -97,7 +97,7 @@
   --m1-r-hero:30px; --m1-r-card:24px; --m1-r-compact:20px; --m1-r-ctl:18px;
   /* spacing: page gutter 16 (min 12), section gap 24-32, card gap 10-12 */
   --m1-gutter:16px; --m1-gutter-min:12px; --m1-section-gap:28px; --m1-card-gap:12px;
-  --m1-pad-hero:22px; --m1-pad-card:18px; --m1-pad-compact:15px;
+  --m1-pad-hero:22px; --m1-pad-calm:26px; --m1-pad-card:18px; --m1-pad-compact:15px;
 }
 
 :root[data-theme="light"] {
@@ -2191,13 +2191,11 @@ button.wl-summary{width:100%;padding:0 0 10px;text-align:start;border-radius:var
    is set by views/Home.jsx while it is mounted; the rest of the app keeps --bg until a later
    phase moves it deliberately. Cards inside .today take the M1 surfaces, radii and gaps. --- */
 body.today-canvas,html:has(body.today-canvas){background:var(--m1-canvas)}
-.today .card{background:var(--m1-surface);border-radius:var(--m1-r-card);padding:var(--m1-pad-card);margin-bottom:var(--m1-card-gap)}
-.today .today-row{background:var(--m1-surface-2);border-radius:var(--m1-r-compact)}
 .today-hdr{margin:var(--m1-card-gap) 0 22px;align-items:center}
 .today-hdr h1{color:var(--m1-text);font-size:32px}
-.today-date{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--m1-muted);margin-bottom:6px}
+.today-date{font-size:14px;font-weight:500;color:var(--m1-muted);margin-bottom:4px}
 .today-primary{margin-bottom:calc(var(--m1-section-gap) - var(--m1-card-gap))}
-.today-secondary{display:block}
+.today-primary>:last-child{margin-bottom:0}
 
 /* --- Today (M1): the Planned command center. Fixed M1 colours — Action Red hero, warm-white
    contrast tile, Recovery Lime tile — none of them the user's --acc. Small text on the red and
@@ -2239,7 +2237,7 @@ body.today-canvas,html:has(body.today-canvas){background:var(--m1-canvas)}
 .m1-hero.done .m1-hero-title,.m1-hero.done .m1-hero-names li{color:var(--m1-text)}
 .m1-hero.done .m1-status{background:var(--m1-surface-2);color:var(--m1-text)}
 .m1-hero.done .m1-hero-cta{background:var(--m1-surface-2);color:var(--m1-text)}
-.m1-tiles{display:grid;grid-template-columns:1fr 1fr;gap:var(--m1-card-gap);margin-bottom:6px}
+.m1-tiles{display:grid;grid-template-columns:1fr 1fr;gap:var(--m1-card-gap);margin-bottom:var(--m1-card-gap)}
 .m1-tile{padding:var(--m1-pad-compact);min-height:150px;display:flex;flex-direction:column;min-width:0}
 .m1-tile-week{background:var(--m1-contrast);color:var(--m1-on-contrast);border-radius:var(--m1-r-card) var(--m1-r-card) var(--m1-r-card) 8px}
 .m1-tile-week .m1-kicker,.m1-tile-week .m1-tile-label{color:var(--m1-contrast-2)}
@@ -2255,7 +2253,7 @@ body.today-canvas,html:has(body.today-canvas){background:var(--m1-canvas)}
 .m1-bar{height:6px;border-radius:3px;background:rgba(127,127,127,.28);margin-top:10px;overflow:hidden}
 .m1-bar i{display:block;height:100%;background:var(--m1-action);border-radius:3px}
 /* The way to another workout: a secondary action, below the command center and quiet. */
-.m1-door{display:flex;justify-content:center;margin-top:2px}
+.m1-door{display:flex;justify-content:center}
 .m1-door .btn{color:var(--m1-muted)}
 @media (prefers-reduced-motion:reduce){.m1-hero-cta{transition:none}}
 
@@ -2275,7 +2273,7 @@ body.today-canvas,html:has(body.today-canvas){background:var(--m1-canvas)}
 .m1-seg{display:flex;gap:4px;height:8px;margin-bottom:18px}
 .m1-seg i{flex:1;min-width:3px;border-radius:4px;background:rgba(17,17,17,.2);overflow:hidden;display:block}
 .m1-seg b{display:block;height:100%;background:var(--hero-ink);border-radius:4px}
-.m1-now{background:rgba(17,17,17,.14);border-radius:var(--m1-r-compact);padding:12px 14px;margin-bottom:16px}
+.m1-now{background:rgba(17,17,17,.14);border-radius:var(--m1-r-compact);padding:var(--m1-pad-compact);margin-bottom:var(--m1-card-gap)}
 .m1-now .m1-kicker{color:var(--hero-ink);font-size:11px}
 .m1-now-name{font-size:20px;font-weight:800;letter-spacing:-.02em;line-height:1.15;margin-top:4px;overflow-wrap:anywhere;color:var(--m1-on-action)}
 .m1-now-set{font-size:14px;font-weight:700;color:var(--hero-ink);margin-top:4px;font-variant-numeric:tabular-nums}
@@ -2289,27 +2287,19 @@ body.today-canvas,html:has(body.today-canvas){background:var(--m1-canvas)}
 .m1-tiles.single .m1-metric{margin-top:6px}
 .m1-tiles.single .m1-tile-label{margin-top:0}
 .m1-tiles.single .m1-bar{flex:1 0 100%}
-/* The weekday strip, folded under a running session. */
-.today .today-fold{padding:0}
-.today-fold>summary{display:flex;align-items:center;justify-content:space-between;list-style:none;cursor:pointer;padding:14px var(--m1-pad-card);font-weight:600;color:var(--m1-muted);min-height:48px}
-.today-fold>summary::-webkit-details-marker{display:none}
-.today-fold>summary .icn{transition:transform var(--fast) var(--ease)}
-.today-fold[open]>summary .icn{transform:rotate(90deg)}
-.today-fold>:not(summary){margin-inline:var(--m1-pad-card)}
-.today-fold>:last-child{margin-bottom:var(--m1-pad-card)}
 @media (prefers-reduced-motion:reduce){.m1-live i{animation:none}}
 
 /* --- Today (M1): Rest and New User. The two quiet states, deliberately not recoloured Planned:
    Rest is a calm M1 surface with room around it and the lime kept to small marks; New User is
    guidance — three steps and one action. Action Red is only the New User's single button. --- */
-.m1-rest{background:var(--m1-surface);color:var(--m1-text);border-radius:var(--m1-r-hero);padding:28px 24px 24px;margin-bottom:var(--m1-card-gap)}
+.m1-rest{background:var(--m1-surface);color:var(--m1-text);border-radius:var(--m1-r-hero);padding:var(--m1-pad-calm) var(--m1-pad-calm) var(--m1-pad-hero);margin-bottom:var(--m1-card-gap)}
 .m1-rest-kicker{display:flex;align-items:center;gap:8px;color:var(--m1-muted)}
 .m1-rest-kicker i{width:8px;height:8px;border-radius:50%;background:var(--m1-recovery)}
 .m1-rest-title{font-size:52px;font-weight:700;letter-spacing:-.04em;line-height:1;margin:16px 0 10px}
 .m1-rest-line{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:500;color:var(--m1-text-2);margin-bottom:26px}
 .m1-rest-line .icn{font-size:20px;color:var(--m1-recovery);flex:none}
 :root[data-theme="light"] .m1-rest-line .icn{color:#4d7a00}
-.m1-next{background:var(--m1-surface-2);border-radius:var(--m1-r-compact);padding:16px 18px}
+.m1-next{background:var(--m1-surface-2);border-radius:var(--m1-r-compact);padding:var(--m1-pad-compact) var(--m1-pad-card)}
 .m1-next-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .m1-next .m1-kicker{color:var(--m1-muted)}
 .m1-when{background:var(--m1-recovery);color:var(--m1-on-recovery);font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:5px 11px;white-space:nowrap}
@@ -2319,7 +2309,7 @@ body.today-canvas,html:has(body.today-canvas){background:var(--m1-canvas)}
 .m1-next-names li+li::before{content:'+ ';opacity:.6}
 .m1-next-meta{display:flex;flex-wrap:wrap;gap:2px 12px;font-size:14px;font-weight:600;color:var(--m1-text-2);margin-top:8px}
 .m1-rest-plan{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;border-radius:var(--m1-r-ctl);background:var(--m1-surface-2);color:var(--m1-text);font-size:16px;font-weight:600}
-.m1-welcome{background:var(--m1-surface);color:var(--m1-text);border-radius:var(--m1-r-hero);padding:26px 22px 22px;margin-bottom:var(--m1-card-gap)}
+.m1-welcome{background:var(--m1-surface);color:var(--m1-text);border-radius:var(--m1-r-hero);padding:var(--m1-pad-calm) var(--m1-pad-hero) var(--m1-pad-hero);margin-bottom:var(--m1-card-gap)}
 .m1-welcome .m1-kicker{color:var(--m1-muted)}
 .m1-welcome-title{font-size:34px;font-weight:800;letter-spacing:-.035em;line-height:1.05;margin:12px 0 22px;overflow-wrap:break-word}
 .m1-steps{list-style:none;margin:0 0 24px;display:grid}
@@ -2333,3 +2323,38 @@ body.today-canvas,html:has(body.today-canvas){background:var(--m1-canvas)}
 .m1-tiles.single .m1-tile-recovery{flex-direction:column;flex-wrap:nowrap;align-items:flex-start}
 .m1-tiles.single .m1-tile-recovery .m1-kicker{flex:none}
 .m1-tiles.single .m1-tile-recovery .m1-metric{margin-top:10px}
+
+/* --- Today (M1): the supporting group. One quiet surface of rows under the command center —
+   week, check-in, body weight, streak — not four cards. They recede: no colour of their own, small
+   type, hairlines between. Colours are the M1 palette, not the user's --acc. --- */
+.m1-group{background:var(--m1-surface);border-radius:var(--m1-r-card);overflow:hidden;margin-top:var(--m1-card-gap)}
+.m1-group>*+*{border-top:var(--hair) solid var(--sep-op)}
+.m1-g-week{padding:var(--m1-pad-compact) var(--m1-pad-card) var(--m1-pad-card)}
+details.m1-g-week{padding:0}
+details.m1-g-week>summary{display:flex;align-items:center;justify-content:space-between;list-style:none;cursor:pointer;padding:0 var(--m1-pad-card);min-height:52px;font-size:15px;font-weight:600;color:var(--m1-text-2)}
+details.m1-g-week>summary::-webkit-details-marker{display:none}
+details.m1-g-week>summary .icn{transition:transform var(--fast) var(--ease)}
+details.m1-g-week[open]>summary .icn{transform:rotate(90deg)}
+details.m1-g-week>:not(summary){margin-inline:var(--m1-pad-card)}
+details.m1-g-week>:last-child{margin-bottom:var(--m1-pad-card)}
+.m1-g-week .wday .lbl{color:var(--m1-muted);font-size:10px}
+.m1-g-week .wday .num{font-size:15px;margin:3px 0}
+.m1-g-week .wday.today .num{background:var(--m1-text);color:var(--m1-canvas);width:28px;height:28px}
+.m1-g-week .wday .dot.plan{background:var(--m1-muted)}
+.m1-g-week .wday .dot.done{background:var(--m1-recovery)}
+:root[data-theme="light"] .m1-g-week .wday .dot.done{background:#4d7a00}
+.m1-row{display:flex;align-items:center;gap:12px;min-height:52px;padding:0 var(--m1-pad-card);cursor:pointer}
+.m1-row:active{background:var(--m1-surface-2)}
+.m1-row-ic{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;flex:none;background:var(--m1-surface-2);color:var(--m1-text-2);font-size:16px}
+.m1-row-t{font-size:15px;font-weight:600;color:var(--m1-text);white-space:nowrap}
+.m1-row-sub{flex:1;min-width:0;font-size:13px;color:var(--m1-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:end}
+.m1-row .chev{color:var(--m1-muted);flex:none}
+.m1-streak .m1-row-ic{color:var(--orange)}
+.m1-bw{padding:var(--m1-pad-compact) var(--m1-pad-card);display:grid;gap:4px}
+.m1-bw h2{margin:0;font-size:15px;font-weight:600;color:var(--m1-text-2)}
+.m1-bw-now{gap:8px;align-items:baseline}
+.m1-bw-val{font-size:28px;font-weight:700;letter-spacing:-.03em;line-height:1.1;color:var(--m1-text)}
+.m1-bw-val span{font-size:14px;font-weight:500;color:var(--m1-muted)}
+.m1-bw-foot{min-height:36px}
+.m1-goal{color:var(--yellow)}
+:root[data-theme="light"] .m1-goal{color:#8a6100}

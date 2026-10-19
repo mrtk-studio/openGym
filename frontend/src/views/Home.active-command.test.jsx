@@ -163,7 +163,7 @@ describe('Active Today — editing and backfill are not live', () => {
 
   it('does not fold the week for them — only a live session does', () => {
     setS({ active: session({ backfill: true }) }); mount()
-    expect(host.querySelector('.today-fold')).toBeNull()
+    expect(host.querySelector('details.m1-g-week')).toBeNull()
   })
 })
 
@@ -183,21 +183,21 @@ describe('Active Today — what sits beneath the hero', () => {
 
   it('folds the legacy week strip under a live session, closed, with its days still there', () => {
     setS(); mount()
-    const fold = host.querySelector('details.today-fold')
+    const fold = host.querySelector('details.m1-g-week')
     expect(fold).not.toBeNull(); expect(fold.open).toBe(false)
     expect(fold.querySelector('summary').textContent).toBe('Week')
     expect(fold.querySelectorAll('.week .wday')).toHaveLength(7)
   })
 
   it('keeps the check-in, body weight and streak reachable', () => {
-    setS({ weighIn: undefined }); mount()
-    expect(host.textContent).toContain('Check in'); expect(host.textContent).toContain('Body weight'); expect(host.textContent).toMatch(/week streak/)
+    setS({ weighIn: undefined, workouts: [{ id: 'w', d: '2020-01-01', start: 1, end: 2, routineIds: ['r1'], routineId: 'r1', name: 'Push', entries: [] }] }); mount()
+    expect(host.textContent).toContain('Check in'); expect(host.textContent).toContain('Body weight'); expect(host.textContent).toMatch(/workouts? total/)
   })
 
   it('leaves the other states’ week strip unfolded', () => {
     setS({ active: null }); mount()
-    expect(host.querySelector('.today-fold')).toBeNull()
-    expect(host.querySelectorAll('.today-secondary .card .week .wday')).toHaveLength(7)
+    expect(host.querySelector('details.m1-g-week')).toBeNull()
+    expect(host.querySelectorAll('.today-secondary .m1-g-week .week .wday')).toHaveLength(7)
   })
 })
 
