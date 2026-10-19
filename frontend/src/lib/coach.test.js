@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
+  coachTabTarget,
   canonicalPlan, planHash, hashPlan, markStale, applicable, currentValue, ROUTINE_NAME_SEEN,
   pushSnapshot, revertLast, canRevert, appendLog, applyChangeSet, applyCreatedPlan,
   recordDismissal, validateProposal, coachAvailable, hasConsent,
@@ -694,5 +695,24 @@ describe('what the log keeps, so a decision never makes a proposal vanish', () =
     expect(b.basedOn).toBeUndefined()
     expect(Object.keys(b.routines[0].ex[0])).not.toContain('secret')
     expect(lightBundle(null)).toBeNull()
+  })
+})
+
+describe('coachTabTarget', () => {
+  const on = { coach: { enabled: true } }, user = { id: 1 }
+  it('opens the chat wherever coachAvailable says the Coach is on', () => {
+    expect(coachTabTarget(on, user)).toBe('/coach')
+    expect(coachTabTarget({}, null, { demo: true })).toBe('/coach')
+    expect(coachTabTarget({}, user, { mobile: true, coachMode: 'byok' })).toBe('/coach')
+    expect(coachTabTarget(on, user, { mobile: true })).toBe('/coach')
+  })
+  it('sends the phone app to its Coach setup when the Coach is off', () => {
+    expect(coachTabTarget({}, null, { mobile: true })).toBe('/coach/setup')
+    expect(coachTabTarget({}, user, { mobile: true })).toBe('/coach/setup')
+  })
+  it('has no screen to send the web build to: the admin switches the Coach on', () => {
+    expect(coachTabTarget({}, user)).toBeNull()
+    expect(coachTabTarget(on, null)).toBeNull()
+    expect(coachTabTarget(null, user)).toBeNull()
   })
 })

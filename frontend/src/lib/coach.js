@@ -62,6 +62,14 @@ export const coachAvailable = (config, user, { demo, mobile, coachMode } = {}) =
   mobile ? (coachMode === 'byok' || !!(config?.coach?.enabled && user))
     : demo ? true : !!(config?.coach?.enabled && user)
 
+// Where the Coach tab goes. Same predicate, no second availability model: an available Coach
+// opens the chat (which sends itself on to the intake when consent or the profile is missing,
+// views/CoachChat.jsx); an unavailable one has a setup path only on the phone app (Settings'
+// Coach page, views/CoachSetup.jsx). Anywhere else the Coach is the admin's to switch on, so
+// there is no screen to send you to and the caller explains instead (null).
+export const coachTabTarget = (config, user, opts = {}) =>
+  coachAvailable(config, user, opts) ? '/coach' : opts.mobile ? '/coach/setup' : null
+
 // What each data category means, in the user's words. Rendered from the same list the payload
 // builder uses (api/coach/core/categories.js), so the screen cannot promise less than leaves.
 // Each entry returns [title, detail] in the current language, through literal t() calls so
