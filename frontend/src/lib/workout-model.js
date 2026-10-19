@@ -388,3 +388,12 @@ export function modeForEntry(entry, fallback = null) {
   if (targetMode) return targetMode
   return fallback == null ? modeForSet(source, target) : normalizeMode(fallback)
 }
+
+/** The number a set row shows: counted per phase (warm-ups and work sets each from 1), and a
+ *  timed per-side L/R pair as one set. */
+export function setNumberAt(sets, i) {
+  const s = sets[i]
+  const warm = isWarmupRow(s)
+  const phaseNum = sets.slice(0, i + 1).filter(x => isWarmupRow(x) === warm).length
+  return s?.side ? Math.ceil(phaseNum / 2) : phaseNum
+}

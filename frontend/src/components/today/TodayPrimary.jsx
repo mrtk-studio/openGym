@@ -1,5 +1,6 @@
 import Icon from '../Icon.jsx'
 import TodayHero from './TodayHero.jsx'
+import TodayActiveHero from './TodayActiveHero.jsx'
 import WeekTile from './WeekTile.jsx'
 import RecoveryTile from './RecoveryTile.jsx'
 import { Button } from '../ui.jsx'
@@ -12,15 +13,15 @@ import { tappable } from '../../lib/use-sheet-keyboard.js'
 // (lib/today-state.js) and hands over what to say; taps go back to it as callbacks.
 //
 //   state      { kind, mode, done } from classifyToday
-//   name       the open session's name, for the active row
+//   name       the open session's name (active)
 //   rescheduled / next   the extra words under or after the title, already decided by Home
+//   active     for an open session: { start, progress, current, week } (lib/today-active.js)
 //   planned    for a planned day, what the M1 command center shows: { names, count, focus, week,
 //              recovery } — all derived by Home from the effective routines and the log
 //
-// Planned has its M1 command center; the other states still use the legacy row until their own phase.
-export default function TodayPrimary({ state, planned: plan, name, doneName, rescheduled, next, nextDay, onPress, onChoose, onStarter, onBuild }) {
+// Planned and Active have their M1 command centers; rest still uses the legacy row until its phase.
+export default function TodayPrimary({ state, planned: plan, active: live, name, doneName, rescheduled, next, nextDay, onPress, onChoose, onStarter, onBuild }) {
   const { kind, mode, done } = state
-  const active = kind === 'active', editing = active && mode === 'editing'
 
   if (kind === 'new-user') {
     return <div className="today-primary" data-state="new-user">
@@ -37,6 +38,13 @@ export default function TodayPrimary({ state, planned: plan, name, doneName, res
     </div>
   }
 
+  if (kind === 'active') {
+    return <div className="today-primary" data-state="active" data-mode={mode}>
+      <TodayActiveHero mode={mode} name={name} start={live.start} progress={live.progress} current={live.current} onResume={onPress} />
+      <div className="m1-tiles single"><WeekTile done={live.week.done} planned={live.week.planned} /></div>
+    </div>
+  }
+
   if (kind === 'planned') {
     return <div className="today-primary" data-state="planned">
       <TodayHero names={plan.names} count={plan.count} focus={plan.focus} rescheduled={rescheduled} done={done} onStart={onPress} />
@@ -48,22 +56,19 @@ export default function TodayPrimary({ state, planned: plan, name, doneName, res
     </div>
   }
 
-  const title = active ? (editing ? name : t('{0} (in progress)', name))
-    : done ? (doneName ? t('{0} (done)', doneName) : t('Workout done'))
-    : t('Rest day')
+  const title = done ? (doneName ? t('{0} (done)', doneName) : t('Workout done')) : t('Rest day')
 
   return <div className="today-primary" data-state={kind} data-mode={mode || undefined}>
     <div className="card">
       {/* Once today's session is logged the row stops asking for it. The week strip already
           knew (its dot goes 'done'); this row did not, so a finished day kept showing the
           routine name behind a green Start tag and read as still outstanding (issue #4).
-          An in-progress session still wins — that one is happening right now. Tapping the
-          row keeps working, so a second session in one day is a tap away, just not urged. */}
+          Tapping the row keeps working, so a second session in one day is a tap away, just not
+          urged. (An open session never gets here: Active has its own hero above.) */}
       <div className="today-row" {...tappable(onPress)}>
         <div className="row" style={{ gap: 9, minWidth: 0 }}>
-          <span className="lrow-i" style={{ background: active ? 'var(--orange)' : 'var(--surface-3)' }}>
-            <Icon name={active ? (editing ? 'pencil' : 'play') : done ? 'checkCircle' : 'moon'}
-              style={done && !active ? { color: 'var(--green)' } : undefined} />
+          <span className="lrow-i" style={{ background: 'var(--surface-3)' }}>
+            <Icon name={done ? 'checkCircle' : 'moon'} style={done ? { color: 'var(--green)' } : undefined} />
           </span>
           <div style={{ minWidth: 0 }}>
             <div className="lbl2">{t('Today')}</div>
@@ -71,11 +76,10 @@ export default function TodayPrimary({ state, planned: plan, name, doneName, res
             {next && !done && <div className="ss">{t('Next session: {0}, {1}', t(nextDay), next.routine.name)}</div>}
           </div>
         </div>
-        {active ? <span className="tag" style={{ color: 'var(--orange)', background: 'color-mix(in srgb,var(--orange) 16%,transparent)' }}>{editing ? t('Edit') : t('Resume')}</span>
-          : done ? <span className="tag" style={{ color: 'var(--green)', background: 'color-mix(in srgb,var(--green) 16%,transparent)' }}>{t('Done')}</span>
+        {done ? <span className="tag" style={{ color: 'var(--green)', background: 'color-mix(in srgb,var(--green) 16%,transparent)' }}>{t('Done')}</span>
           : <Icon name="plus" className="chev" />}
       </div>
-      {!active && <ChooseDoor onChoose={onChoose} />}
+      <ChooseDoor onChoose={onChoose} />
     </div>
   </div>
 }

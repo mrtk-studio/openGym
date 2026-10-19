@@ -114,24 +114,28 @@ describe('Today — the state of the day', () => {
 describe('Today — an open session', () => {
   const live = (extra = {}) => ({ id: 'a', name: 'Push', start: Date.now() - 600000, cur: 0, entries: [], routineIds: ['r1'], ...extra })
 
-  it('a live session is active/live, "in progress", and the row resumes it', () => {
+  it('a live session is active/live, "in progress", and Resume goes to the workout', () => {
     setS({ active: live() }); mount()
     expect(state()).toBe('active'); expect(mode()).toBe('live')
-    expect(title()).toBe('Push (in progress)'); expect(tag()).toBe('Resume')
-    act(() => { host.querySelector('.today-row').click() })
+    expect(host.querySelector('.m1-hero.m1-active .m1-kicker').textContent).toBe('Workout in progress')
+    expect(host.querySelector('.m1-hero-title').textContent).toBe('Push')
+    act(() => { host.querySelector('.m1-hero-cta').click() })
     expect(nav).toHaveBeenCalledWith('/workout'); expect(startFlow).not.toHaveBeenCalled()
   })
 
   it('an open editor on a saved workout is active/editing, not "in progress"', () => {
     setS({ active: live({ editingWorkoutId: 'w1' }) }); mount()
     expect(state()).toBe('active'); expect(mode()).toBe('editing')
-    expect(title()).toBe('Push'); expect(tag()).toBe('Edit')
+    expect(host.querySelector('.m1-hero.quiet')).not.toBeNull()
+    expect(host.textContent).not.toContain('Workout in progress')
+    expect(host.querySelector('.m1-hero-cta').textContent).toBe('Edit workout')
   })
 
   it('a backfill is active/backfill, kept apart from a live session', () => {
     setS({ active: live({ backfill: true }) }); mount()
     expect(state()).toBe('active'); expect(mode()).toBe('backfill')
-    expect(tag()).toBe('Resume')
+    expect(host.querySelector('.m1-hero.quiet .m1-kicker').textContent).toBe('Log a past workout')
+    expect(host.querySelector('.m1-hero-cta').textContent).toBe('Resume')
   })
 
   it('an open session outranks a new-user profile and hides the freestyle door', () => {

@@ -16,6 +16,7 @@ import { tappable } from '../lib/use-sheet-keyboard.js'
 import { dayNoteOf } from '../lib/day-notes.js'
 import { classifyToday } from '../lib/today-state.js'
 import { sessionSummary, recoveryContext } from '../lib/today-session.js'
+import { activeProgress, currentPosition } from '../lib/today-active.js'
 import TodayHeader from '../components/today/TodayHeader.jsx'
 import TodayPrimary from '../components/today/TodayPrimary.jsx'
 
@@ -110,8 +111,15 @@ export default function Home() {
     const { count, focus } = sessionSummary(todayRoutines, S.customEx)
     planned = { names: todayRoutines.map(r => r.name), count, focus, week: { done: doneThisWeek, planned: plannedPerWeek }, recovery: recoveryContext(S.workouts, focus) }
   }
-  // The open session's name, for the active row.
+  // What the Active command center shows, all from S.active: its own name (not today's schedule —
+  // another workout may be the one running), its clock, how far along it is and where the marker
+  // is. This week's tally is shown unchanged; an unfinished workout is not in it until it is saved.
+  const live = state.kind === 'active'
+    ? { start: S.active.start, progress: activeProgress(S.active), current: currentPosition(S.active), week: { done: doneThisWeek, planned: plannedPerWeek } }
+    : null
   const rowName = S.active?.name
+  // A running session takes the page: the weekday strip folds away so it doesn't compete with it.
+  const foldWeek = state.kind === 'active' && state.mode === 'live'
   const rescheduled = todayOvr && !!routine && !doneToday
 
   // Today's row: resume what is open, else start today's plan, else assign a day.
@@ -120,34 +128,40 @@ export default function Home() {
   // already in progress wins, as on the today row — starting another would overwrite it.
   const onQueueStart = id => { if (S.active) nav('/workout'); else startFlow([id]) }
 
+  // The week: the weekday strip, or a coach week's progress row (components/QueueRow.jsx), or the
+  // empty rotation card. The same body whether it sits open or folded under a running session.
+  const weekBody = <>
+    {/* A coach week runs by order, not by weekday, so its progress row stands in for the
+        seven dots (components/QueueRow.jsx). The today row above stays as it is: the queue's
+        next session reaches it through effectiveRoutineIds like any planned routine. */}
+    {rotating ? (queue ? <QueueRow S={S} today={todayISO()} onStart={onQueueStart} managed={managedQueue} /> : <div className="empty">
+      {t('No rotation yet. Add routines to it in Plan.')}
+      <div style={{ marginTop: 10 }}><Button size="sm" variant="tinted" onClick={() => nav('/plan')}>{t('Set up in Plan')}</Button></div>
+    </div>) : <>
+      <div className="row between" style={{ marginBottom: 8 }}>
+        <button className="iconbtn" style={{ width: 30, height: 30, fontSize: 15 }} onClick={() => setWeekOffset(w => w - 1)} aria-label={t('Previous week')}><Icon name="chevronLeft" /></button>
+        <div className="small muted" style={{ fontWeight: 500 }}>{wkLabel}</div>
+        <button className="iconbtn" style={{ width: 30, height: 30, fontSize: 15 }} onClick={() => setWeekOffset(w => w + 1)} aria-label={t('Next week')}><Icon name="chevronRight" /></button>
+      </div>
+      <div className="week">{strip}</div>
+    </>}
+  </>
+
   return <div className="narrow today" data-today-state={state.kind} data-today-mode={state.mode || undefined}>
     <TodayHeader title={user ? t('Hi {0}', user.name) : 'openGym'} dateLabel={today.toLocaleDateString(dateLocale(), { weekday: 'long', day: 'numeric', month: 'long' })}
       trouble={trouble} onSettings={() => nav('/settings')} />
 
     {/* The command-center slot: one rendering per state (components/today/TodayPrimary.jsx). */}
-    <TodayPrimary state={state} planned={planned} name={rowName} doneName={doneToday?.name}
+    <TodayPrimary state={state} planned={planned} active={live} name={rowName} doneName={doneToday?.name}
       rescheduled={rescheduled} next={next} nextDay={next ? DAYN[next.weekday] : null}
       onPress={onToday} onChoose={() => nav('/workout')} onStarter={starterPlanSheet} onBuild={() => nav('/plan')} />
 
     {/* Everything below is the existing Home, in its existing form, until later phases move it
         into the M1 modules: the week, the gym check-in, body weight and the streak. */}
     <div className="today-secondary">
-    <div className="card">
-      {/* A coach week runs by order, not by weekday, so its progress row stands in for the
-          seven dots (components/QueueRow.jsx). The today row above stays as it is: the queue's
-          next session reaches it through effectiveRoutineIds like any planned routine. */}
-      {rotating ? (queue ? <QueueRow S={S} today={todayISO()} onStart={onQueueStart} managed={managedQueue} /> : <div className="empty">
-        {t('No rotation yet. Add routines to it in Plan.')}
-        <div style={{ marginTop: 10 }}><Button size="sm" variant="tinted" onClick={() => nav('/plan')}>{t('Set up in Plan')}</Button></div>
-      </div>) : <>
-        <div className="row between" style={{ marginBottom: 8 }}>
-          <button className="iconbtn" style={{ width: 30, height: 30, fontSize: 15 }} onClick={() => setWeekOffset(w => w - 1)} aria-label={t('Previous week')}><Icon name="chevronLeft" /></button>
-          <div className="small muted" style={{ fontWeight: 500 }}>{wkLabel}</div>
-          <button className="iconbtn" style={{ width: 30, height: 30, fontSize: 15 }} onClick={() => setWeekOffset(w => w + 1)} aria-label={t('Next week')}><Icon name="chevronRight" /></button>
-        </div>
-        <div className="week">{strip}</div>
-      </>}
-    </div>
+    {foldWeek
+      ? <details className="card today-fold"><summary><span>{t('Week')}</span><Icon name="chevronRight" /></summary>{weekBody}</details>
+      : <div className="card">{weekBody}</div>}
 
     {/* Jump to the gym check-in cards (QR membership codes). Shown here as a quick tap on
         arrival at the gym; folds away per user via the "Gym check-in" switch in Settings. */}

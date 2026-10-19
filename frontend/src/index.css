@@ -2258,3 +2258,43 @@ body.today-canvas,html:has(body.today-canvas){background:var(--m1-canvas)}
 .m1-door{display:flex;justify-content:center;margin-top:2px}
 .m1-door .btn{color:var(--m1-muted)}
 @media (prefers-reduced-motion:reduce){.m1-hero-cta{transition:none}}
+
+/* --- Today (M1): Active. The running session is the red hero too, but its own composition: a
+   live marker, the clock as the biggest figure, the session's name, exercises done over total
+   with one segment per exercise, then where you are. Editing a saved workout and logging a past
+   one are not live, so they get the quiet surface and none of the live language. --- */
+.m1-live{display:inline-flex;align-items:center;gap:8px}
+.m1-live i{width:9px;height:9px;border-radius:50%;background:var(--hero-ink);animation:m1-pulse 1.6s ease-in-out infinite}
+@keyframes m1-pulse{50%{opacity:.25}}
+.m1-clock{font-size:60px;font-weight:800;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums;margin-top:14px;color:var(--m1-on-action)}
+.m1-active .m1-hero-title{margin:10px 0 14px}
+.m1-active .m1-hero-title.lg{font-size:34px}
+.m1-active .m1-hero-title.md{font-size:30px}
+.m1-active .m1-hero-title.sm{font-size:26px}
+.m1-prog-label{font-size:14px;font-weight:700;color:var(--hero-ink);margin-bottom:8px;font-variant-numeric:tabular-nums}
+.m1-seg{display:flex;gap:4px;height:8px;margin-bottom:18px}
+.m1-seg i{flex:1;min-width:3px;border-radius:4px;background:rgba(17,17,17,.2);overflow:hidden;display:block}
+.m1-seg b{display:block;height:100%;background:var(--hero-ink);border-radius:4px}
+.m1-now{background:rgba(17,17,17,.14);border-radius:var(--m1-r-compact);padding:12px 14px;margin-bottom:16px}
+.m1-now .m1-kicker{color:var(--hero-ink);font-size:11px}
+.m1-now-name{font-size:20px;font-weight:800;letter-spacing:-.02em;line-height:1.15;margin-top:4px;overflow-wrap:anywhere;color:var(--m1-on-action)}
+.m1-now-set{font-size:14px;font-weight:700;color:var(--hero-ink);margin-top:4px;font-variant-numeric:tabular-nums}
+.m1-hero.quiet{background:var(--m1-surface);color:var(--m1-text)}
+.m1-hero.quiet .m1-kicker{color:var(--m1-muted)}
+.m1-hero.quiet .m1-hero-title{color:var(--m1-text);margin:14px 0 18px}
+.m1-hero.quiet .m1-hero-cta{background:var(--m1-surface-2);color:var(--m1-text)}
+.m1-tiles.single{grid-template-columns:1fr}
+.m1-tiles.single .m1-tile{min-height:0;flex-direction:row;flex-wrap:wrap;align-items:baseline;column-gap:14px}
+.m1-tiles.single .m1-tile .m1-kicker{flex:1 0 100%}
+.m1-tiles.single .m1-metric{margin-top:6px}
+.m1-tiles.single .m1-tile-label{margin-top:0}
+.m1-tiles.single .m1-bar{flex:1 0 100%}
+/* The weekday strip, folded under a running session. */
+.today .today-fold{padding:0}
+.today-fold>summary{display:flex;align-items:center;justify-content:space-between;list-style:none;cursor:pointer;padding:14px var(--m1-pad-card);font-weight:600;color:var(--m1-muted);min-height:48px}
+.today-fold>summary::-webkit-details-marker{display:none}
+.today-fold>summary .icn{transition:transform var(--fast) var(--ease)}
+.today-fold[open]>summary .icn{transform:rotate(90deg)}
+.today-fold>:not(summary){margin-inline:var(--m1-pad-card)}
+.today-fold>:last-child{margin-bottom:var(--m1-pad-card)}
+@media (prefers-reduced-motion:reduce){.m1-live i{animation:none}}
