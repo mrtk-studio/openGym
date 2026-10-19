@@ -26,7 +26,7 @@ const mocks = vi.hoisted(() => {
     stopWork: null,
     confirmSheet: vi.fn(),
     workoutCompleteSheet: vi.fn(),
-    exercisePicker: vi.fn(),
+    exercisePicker: vi.fn(() => ({ close: vi.fn() })),   // the real one returns the sheet's handle
     exConfigSheet: vi.fn(),
     toast: vi.fn(),
     scrollCalls: [],

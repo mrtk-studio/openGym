@@ -315,7 +315,11 @@ export default function FocusView({
           </> : <>
             <Stepper label={loadLabel} ariaLabel="load" value={set.w || 0} step={loadStep} onStep={stepLoad} disabled={readOnly}
               onChange={value => onField(setIdx, 'w', value)} />
-          {mode === 'time' ? <div className={'focus-timed' + (holding ? ' running' : '')}>
+          {mode === 'time' && S.active.backfill
+            // Logging a past workout: no hold to time, so the seconds are typed (as in the grid) and Complete ticks the set.
+            ? <Stepper label={t('Seconds')} ariaLabel="seconds" value={set.sec || entry.target?.sec || 45} step={5} decimal={false} disabled={readOnly}
+              onChange={value => onField(setIdx, 'sec', value)} />
+            : mode === 'time' ? <div className={'focus-timed' + (holding ? ' running' : '')}>
             <strong>{t('{0}s hold', set.sec || entry.target?.sec || 45)}</strong>
             <Button icon={holding ? undefined : 'play'} aria-label={t('Start set')} disabled={readOnly || busy}
               data-state={holding ? 'running' : 'ready'}

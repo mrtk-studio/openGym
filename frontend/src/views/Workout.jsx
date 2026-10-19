@@ -340,14 +340,23 @@ function ExerciseBlock({ entryIdx, compact, dense, m1, editing, onToggle, onTogg
   // workout → Workout controls). The lean default keeps the sets and one "more" button; each
   // switch brings one of the old always-visible button rows back.
   const wc = workoutControls(S)
-  const cell = (s, i, col, cls) => (
-    <div className={'stp ' + cls + (wc.steppers ? '' : ' plain')}>
-      {wc.steppers && <button aria-label={t('Decrease')} onClick={() => bump(s, i, col, -1)}><Icon name="minus" /></button>}
-      <span className="val"><NumberField decimal={col.dec} nullable={col.opt} value={viewOf(col, s[col.f]) ?? ''}
-        onChange={v => onField(i, col.f, col.store ? col.store(v) : v)} /></span>
-      {wc.steppers && <button aria-label={t('Increase')} onClick={() => bump(s, i, col, 1)}><Icon name="plus" /></button>}
-    </div>
-  )
+  // Each numeric field names itself with the row it is in ("Weight (kg), Set 2"), and its − and +
+  // keep their plain names (the tests, and everyone, know them) with that same text as their
+  // description, so a screen reader says what is being changed, not just "Increase".
+  const fieldId = (i, f, side) => optsId + 'f' + i + f + (side || '')
+  const cell = (s, i, col, cls) => {
+    const say = `${col.hd}, ${sideTagOf(s) ? t('Set {0} ({1})', setNumOf(s, i), sideTagOf(s)) : t('Set {0}', setNumOf(s, i))}`
+    const sid = fieldId(i, col.f)
+    return (
+      <div className={'stp ' + cls + (wc.steppers ? '' : ' plain')}>
+        <span id={sid} className="vh">{say}</span>
+        {wc.steppers && <button aria-label={t('Decrease')} aria-describedby={sid} onClick={() => bump(s, i, col, -1)}><Icon name="minus" /></button>}
+        <span className="val"><NumberField decimal={col.dec} nullable={col.opt} value={viewOf(col, s[col.f]) ?? ''} aria-label={say}
+          onChange={v => onField(i, col.f, col.store ? col.store(v) : v)} /></span>
+        {wc.steppers && <button aria-label={t('Increase')} aria-describedby={sid} onClick={() => bump(s, i, col, 1)}><Icon name="plus" /></button>}
+      </div>
+    )
+  }
   // Plate loading, per set row (lib/plates.js): which plates make THIS row's weight, from the
   // plates you own. 'pairs' splits what is beyond the bar per side, 'single' is one stack (a
   // belt, a sled), 'none' shows nothing. A unilateral row logs each side's own weight; a bar is
@@ -526,14 +535,19 @@ function ExerciseBlock({ entryIdx, compact, dense, m1, editing, onToggle, onTogg
     const step = col.f === 'r' ? 1 : col.step
     setSide(i, side, col.f, Math.max(0, Math.round(((cur || 0) + dir * step) * 100) / 100))
   }
-  const sideCell = (sd, i, side, col, cls) => (
-    <div className={'stp ' + cls + (wc.steppers ? '' : ' plain')}>
-      {wc.steppers && <button aria-label={t('Decrease')} onClick={() => sideBump(i, side, col, -1)}><Icon name="minus" /></button>}
-      <span className="val"><NumberField decimal={col.dec} value={sd[col.f] ?? ''}
-        onChange={v => setSide(i, side, col.f, v)} /></span>
-      {wc.steppers && <button aria-label={t('Increase')} onClick={() => sideBump(i, side, col, 1)}><Icon name="plus" /></button>}
-    </div>
-  )
+  const sideCell = (sd, i, side, col, cls) => {
+    const say = `${col.hd}, ${t('Set {0} ({1})', setNumOf(entry.sets[i], i), side === 'L' ? t('Left') : t('Right'))}`
+    const sid = fieldId(i, col.f, side)
+    return (
+      <div className={'stp ' + cls + (wc.steppers ? '' : ' plain')}>
+        <span id={sid} className="vh">{say}</span>
+        {wc.steppers && <button aria-label={t('Decrease')} aria-describedby={sid} onClick={() => sideBump(i, side, col, -1)}><Icon name="minus" /></button>}
+        <span className="val"><NumberField decimal={col.dec} value={sd[col.f] ?? ''} aria-label={say}
+          onChange={v => setSide(i, side, col.f, v)} /></span>
+        {wc.steppers && <button aria-label={t('Increase')} aria-describedby={sid} onClick={() => sideBump(i, side, col, 1)}><Icon name="plus" /></button>}
+      </div>
+    )
+  }
   const sideEffortCell = (sd, i, side, col) => {
     const v = sd[col.f] ?? null
     const rir = col.eff === 'rpe' ? (v == null ? null : 10 - v) : v
@@ -575,15 +589,15 @@ function ExerciseBlock({ entryIdx, compact, dense, m1, editing, onToggle, onTogg
       {dropsOf(sd).map((d, di) => (
         <div className="subrow" key={'d' + di}>
           <span className="subn">{t('Drop {0}', di + 1)}</span>
-          {miniStepper(d.w, loadStep, true, v => setDropField(i, di, 'w', v, side), true)}
-          {miniStepper(d.r, 1, false, v => setDropField(i, di, 'r', v, side))}
+          {miniStepper(d.w, loadStep, true, v => setDropField(i, di, 'w', v, side), true, extraSay(i, t('Drop {0}', di + 1) + ', ' + t('Weight ({0})', S.unit), side))}
+          {miniStepper(d.r, 1, false, v => setDropField(i, di, 'r', v, side), false, extraSay(i, t('Drop {0}', di + 1) + ', ' + t('Reps'), side))}
           <button className="iconbtn" aria-label={t('Remove drop')} onClick={() => removeDrop(i, di)}><Icon name="xmark" /></button>
         </div>
       ))}
       {clustersOf(sd).map((c, ci) => (
         <div className="subrow" key={'c' + ci}>
           <span className="subn">{t('Burst {0}', ci + 1)}</span>
-          {miniStepper(c.r, 1, false, v => setClusterField(i, ci, v, side))}
+          {miniStepper(c.r, 1, false, v => setClusterField(i, ci, v, side), false, extraSay(i, t('Burst {0}', ci + 1) + ', ' + t('Reps'), side))}
           <span className="dim small">{c.restSec}s</span>
           <button className="iconbtn" aria-label={t('Remove burst')} onClick={() => removeCluster(i, ci)}><Icon name="xmark" /></button>
         </div>
@@ -592,13 +606,20 @@ function ExerciseBlock({ entryIdx, compact, dense, m1, editing, onToggle, onTogg
   }
   // A smaller stepper for a drop's weight/reps or a burst's reps — editing what the plan (or a
   // live "+ Drop"/"+ Burst" tap) already put on the row, not typing into a fresh field.
-  const miniStepper = (value, step, dec, onChange, snapWeightStep = false) => (
-    <div className="stp mini">
-      <button aria-label={t('Decrease')} onClick={() => onChange(snapWeightStep ? stepLoad(value, step, -1) : Math.max(0, Math.round(((value || 0) - step) * 100) / 100))}><Icon name="minus" /></button>
-      <span className="val"><NumberField decimal={dec} value={value ?? ''} onChange={onChange} /></span>
-      <button aria-label={t('Increase')} onClick={() => onChange(snapWeightStep ? stepLoad(value, step, 1) : Math.max(0, Math.round(((value || 0) + step) * 100) / 100))}><Icon name="plus" /></button>
-    </div>
-  )
+  // `say` names what the field is ("Set 2, Drop 1, Weight"): the field's own name, and the
+  // description of its − and +, as in the main row's cells.
+  const miniStepper = (value, step, dec, onChange, snapWeightStep = false, say) => {
+    const sid = say ? optsId + 'm' + say.replace(/\W+/g, '') : undefined
+    return (
+      <div className="stp mini">
+        {say && <span id={sid} className="vh">{say}</span>}
+        <button aria-label={t('Decrease')} aria-describedby={sid} onClick={() => onChange(snapWeightStep ? stepLoad(value, step, -1) : Math.max(0, Math.round(((value || 0) - step) * 100) / 100))}><Icon name="minus" /></button>
+        <span className="val"><NumberField decimal={dec} value={value ?? ''} aria-label={say} onChange={onChange} /></span>
+        <button aria-label={t('Increase')} aria-describedby={sid} onClick={() => onChange(snapWeightStep ? stepLoad(value, step, 1) : Math.max(0, Math.round(((value || 0) + step) * 100) / 100))}><Icon name="plus" /></button>
+      </div>
+    )
+  }
+  const extraSay = (i, what, side) => `${side ? t('Set {0} ({1})', setNumOf(entry.sets[i], i), side === 'L' ? t('Left') : t('Right')) : t('Set {0}', setNumOf(entry.sets[i], i))}, ${what}`
   // A plain set row (anything but a reps L/R stack). Its own function since a timed per-side
   // hold draws two of them, L then R, inside one swipe so the pair slides as the one set it is.
   // A set taken to failure wears a small "F" on its number, the button every row's menu opens
@@ -617,7 +638,7 @@ function ExerciseBlock({ entryIdx, compact, dense, m1, editing, onToggle, onTogg
       {col3 && (col3.eff ? effortCell(s, i, col3) : cell(s, i, col3, 'r inc'))}
       {/* A timed set is started, not typed: the timer counts the hold down and checks the
           set off itself. The checkbox stays for anyone who timed it on their own watch. */}
-      {timed && !editing && <button className="setgo" aria-label={t('Start set')} disabled={s.done || !!working}
+      {timed && !editing && !S.active.backfill && <button className="setgo" aria-label={t('Start set')} disabled={s.done || !!working}
         onClick={() => onStartTimed(i)}><Icon name="play" /></button>}
       <Check checked={s.done} label={sideTagOf(s) ? t('Set {0} ({1}) done', setNumOf(s, i), sideTagOf(s)) : t('Set {0} done', setNumOf(s, i))} onChange={() => onToggle(i)} />
     </div>
@@ -828,15 +849,15 @@ function ExerciseBlock({ entryIdx, compact, dense, m1, editing, onToggle, onTogg
             {dropsOf(s).map((d, di) => (
               <div className="subrow" key={'d' + di}>
                 <span className="subn">{t('Drop {0}', di + 1)}</span>
-                {miniStepper(d.w, loadStep, true, v => setDropField(i, di, 'w', v), true)}
-                {miniStepper(d.r, 1, false, v => setDropField(i, di, 'r', v))}
+                {miniStepper(d.w, loadStep, true, v => setDropField(i, di, 'w', v), true, extraSay(i, t('Drop {0}', di + 1) + ', ' + t('Weight ({0})', S.unit)))}
+                {miniStepper(d.r, 1, false, v => setDropField(i, di, 'r', v), false, extraSay(i, t('Drop {0}', di + 1) + ', ' + t('Reps')))}
                 <button className="iconbtn" aria-label={t('Remove drop')} onClick={() => removeDrop(i, di)}><Icon name="xmark" /></button>
               </div>
             )).flatMap((el, di) => [el, <Fragment key={'dl' + di}>{loadLine(i + ':d' + di)}</Fragment>])}
             {clustersOf(s).map((c, ci) => (
               <div className="subrow" key={'c' + ci}>
                 <span className="subn">{t('Burst {0}', ci + 1)}</span>
-                {miniStepper(c.r, 1, false, v => setClusterField(i, ci, v))}
+                {miniStepper(c.r, 1, false, v => setClusterField(i, ci, v), false, extraSay(i, t('Burst {0}', ci + 1) + ', ' + t('Reps')))}
                 <span className="dim small">{c.restSec}s</span>
                 <button className="iconbtn" aria-label={t('Remove burst')} onClick={() => removeCluster(i, ci)}><Icon name="xmark" /></button>
               </div>
@@ -1466,7 +1487,7 @@ function ActiveWorkout() {
     workoutCompleteSheet()
   }
   // Adds an exercise after the current unit: the button under the session and the ⋯ menu's Add.
-  const addExercise = () => exercisePicker((ex, quick) => {
+  const addExercise = () => { const picker = exercisePicker((ex, quick) => {
     // A freehand add inherits the current unit's routine (its `rid`) so it lands in that
     // routine's block in a combined session and gets a real prescription; a routine-less
     // freestyle session has no `rid` to inherit. It inherits the block's `noProg` too: an
@@ -1512,8 +1533,10 @@ function ActiveWorkout() {
     // who wants to set sets/reps first.
     if (quick) { commit(seed || defaultConfig(ex.id)); useUI.getState().toast(t('“{0}” added to {1}', exerciseNameText(ex), routine ? routine.name : t('Freestyle'))) }
     // The confirm names what it changes: this workout, never the routine behind it.
-    else exConfigSheet(ex, null, commit, null, routine, seed, null, t('Add to this workout'))
-  })
+    // Confirmed through the sheet, the add is done: back to the workout, not to the list it came from.
+    // (The quick "+" keeps the picker open to add several in a row.)
+    else exConfigSheet(ex, null, cfg => { commit(cfg); picker.close() }, null, routine, seed, null, t('Add to this workout'))
+  }) }
   // Ending the session without saving it. The ⋯ menu's last item since the header's ✕ became the
   // ⌄ that only leaves the screen (v1.3.11).
   const discardWorkout = () => confirmSheet({
@@ -1924,7 +1947,8 @@ function ActiveWorkout() {
     // ticks its set. A key never logs a set for an exercise that was not in front of you.
     if (!next.current) { focusUnit(next.idx); showCurrent(); return true }
     // A timed set is started rather than ticked, as its play button does; the timer ticks it.
-    if (!next.side && modeAt(next.idx) === 'time') startTimed(next.idx, next.i)
+    // A past workout has no clock to run: its timed rows are ticked by hand, like any other.
+    if (!next.side && modeAt(next.idx) === 'time' && !fresh.backfill) startTimed(next.idx, next.i)
     else toggle(next.idx, next.i, next.side)
     return true
   }
