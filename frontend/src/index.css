@@ -2358,3 +2358,57 @@ details.m1-g-week>:last-child{margin-bottom:var(--m1-pad-card)}
 .m1-bw-foot{min-height:36px}
 .m1-goal{color:var(--yellow)}
 :root[data-theme="light"] .m1-goal{color:#8a6100}
+
+/* --- Workout (M1 shell). body.no-tabbar is the running workout (App.jsx), so the M1 canvas and
+   surfaces apply to the whole screen — Cards, List, Compact and Focus alike — while the set grid
+   keeps its own geometry. Colour: neutral surfaces; completed, failure, progression and timer
+   colours keep their meaning; Action Red is only the strip that says which set is up. --- */
+body.no-tabbar,html:has(body.no-tabbar){background:var(--m1-canvas)}
+body.no-tabbar .whdr.stick{background:color-mix(in srgb,var(--m1-canvas) 94%,transparent)}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){body.no-tabbar .whdr.stick{background:var(--m1-canvas)}}
+body.no-tabbar #app .card{background:var(--m1-surface);border-radius:var(--m1-r-compact)}
+body.no-tabbar .wprog{background:var(--m1-surface-2)}
+body.no-tabbar .wprog i{background:var(--m1-text)}
+body.no-tabbar #timer{background:color-mix(in srgb,var(--m1-surface-2) 97%,transparent)}
+body.no-tabbar .focus-card{background:var(--m1-surface)}
+
+/* Cards: one exercise, read top to bottom — name, which set is up, last time, the sets (unchanged),
+   then the plan, notes and tags. The order is CSS only; the DOM is the old block's. */
+.m1-xb{display:flex;flex-direction:column}
+.m1-xb>*{order:0}
+.m1-xb>.exhd{order:1}
+.m1-xb>.noprog,.m1-xb>.xb-pair{order:2}
+.m1-xb>.m1-cur{order:3}
+.m1-xb>.m1-lt,.m1-xb>.refline{order:4}
+.m1-xb>.exnote{order:5}
+.m1-xb>.planline{order:6}
+.m1-xb>.xb-sets{order:7}
+.m1-xb>.progline{order:8}
+.m1-xb>.xb-tags{order:9;margin:10px 0 0}
+.m1-xb .xb-name{font-size:28px;font-weight:800;letter-spacing:-.03em;line-height:1.06;overflow-wrap:anywhere}
+.ss-ex .m1-xb .xb-name{font-size:20px;letter-spacing:-.02em}
+.m1-xb .xb-tags .tag{font-size:11px;opacity:.85}
+.m1-cur{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 12px;margin:6px 0 12px}
+.m1-cur .m1-kicker{color:var(--m1-action-text);font-size:12px}
+.m1-cur-val{font-size:24px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--m1-text)}
+.m1-cur-side{font-size:15px;font-weight:600;color:var(--m1-text-2);letter-spacing:0}
+.m1-cur.done .m1-kicker{color:var(--m1-muted)}
+.m1-cur.done .m1-cur-val{font-size:18px;color:var(--m1-text-2)}
+.m1-cur-sub{flex:1 0 100%;font-size:14px;font-weight:600;color:var(--m1-text-2)}
+.m1-lt{margin:0 0 12px}
+.m1-lt .refline{margin-bottom:0;align-items:center;justify-content:space-between;min-height:28px;text-transform:uppercase;letter-spacing:.06em;font-size:12px;font-weight:700;color:var(--m1-muted)}
+.m1-lt .refline bdi,.m1-lt .refline .sep{display:none}
+.m1-lt .refline .icn{margin-top:0}
+.m1-lt-rows{list-style:none;display:grid;gap:3px 20px;margin:4px 0 0;font-variant-numeric:tabular-nums}
+.m1-lt-rows.cols{grid-auto-flow:column;grid-template-rows:repeat(4,auto)}
+.m1-lt-rows li{display:flex;align-items:baseline;gap:12px;font-size:17px;font-weight:600;color:var(--m1-text)}
+.m1-lt-n{min-width:16px;font-size:13px;font-weight:600;color:var(--m1-muted)}
+.m1-lt-one{margin-top:4px;font-size:17px;font-weight:600;color:var(--m1-text)}
+.m1-next-up{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:56px;padding:12px 16px;margin-bottom:10px;border-radius:var(--m1-r-compact);background:var(--m1-surface);color:var(--m1-text);text-align:start}
+.m1-next-up:active{background:var(--m1-surface-2)}
+.m1-nu-body{display:grid;gap:2px;min-width:0}
+.m1-next-up .m1-kicker{color:var(--m1-muted);font-size:11px}
+.m1-nu-name{font-size:17px;font-weight:700;letter-spacing:-.015em;overflow-wrap:anywhere}
+.m1-nu-names{list-style:none;display:grid;gap:1px;font-size:16px;font-weight:700;letter-spacing:-.015em}
+.m1-nu-names li+li::before{content:'+ ';opacity:.6}
+.m1-next-up .icn{flex:none;color:var(--m1-muted)}

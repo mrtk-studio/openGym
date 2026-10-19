@@ -45,6 +45,10 @@ import { canMoveActiveWorkoutUnit, moveActiveWorkoutUnit, canMoveActiveWorkoutEn
 import { nextOpenSet, workoutKeyAction } from '../lib/workout-keys.js'
 import { MUSCLE_NAME } from '../lib/muscles.js'
 import FocusView from './FocusView.jsx'
+import WorkoutCurrentSet from '../components/workout/WorkoutCurrentSet.jsx'
+import WorkoutLastTime from '../components/workout/WorkoutLastTime.jsx'
+import WorkoutNextUp from '../components/workout/WorkoutNextUp.jsx'
+import { currentSetView, nextUnitView } from '../lib/workout-current.js'
 import { withMeaning, historyAs, dbLoadFor, entryDbLoad, bellsIn, ownedWeightsFor, stepOwned } from '../lib/dumbbells.js'
 
 // How long after a key starts a hold the same key is not yet its "Done" (#133). A USB button
@@ -102,8 +106,11 @@ const RTL_LETTER = /[֐-ࣿיִ-﷿ﹰ-﻿]/
 // The pause between the left and the right side of one timed per-side set (owner's call): long
 // enough to turn over, far shorter than the rest the set earns once both sides are held.
 const SWITCH_SIDES_SEC = 10
+// Cards draw an exercise inside one column so the reading order is set in CSS (index.css `.m1-xb`):
+// the name, which set is up, last time, the sets — the plan, notes and tags after. Other views keep the fragment.
+const M1Block = ({ children }) => <div className="m1-xb">{children}</div>
 
-function ExerciseBlock({ entryIdx, compact, dense, editing, onToggle, onToggleSide, onField, onAddSet, onRemoveSet, onAddWarmup, onRemoveSetAt, onCopySetAt, onStartTimed, onPairPrev, onPairNext, onSetRowRef, onProgressionSettings, onRest, onNoProg, routineUpdate, onSwap, onMoveUp, onMoveDown, canMoveUp, canMoveDown, onRemoveExercise, busy }) {
+function ExerciseBlock({ entryIdx, compact, dense, m1, editing, onToggle, onToggleSide, onField, onAddSet, onRemoveSet, onAddWarmup, onRemoveSetAt, onCopySetAt, onStartTimed, onPairPrev, onPairNext, onSetRowRef, onProgressionSettings, onRest, onNoProg, routineUpdate, onSwap, onMoveUp, onMoveDown, canMoveUp, canMoveDown, onRemoveExercise, busy }) {
   const S = useStore(s => s.S)
   const update = useStore(s => s.update)
   const working = useUI(s => s.work)
@@ -243,6 +250,7 @@ function ExerciseBlock({ entryIdx, compact, dense, editing, onToggle, onToggleSi
   // How long ago reads at a glance (#363): "3 days ago", counted from the session's own day, so a
   // workout logged into the past is not told its last time was "today". The date itself stays
   // in the hover title and in what a screen reader hears.
+  const refDir = l => (RTL_LETTER.test(l) ? 'auto' : 'ltr')
   const refLabel = refBest ? t('Best set') : t('Last time')
   const refAgo = ref ? fmtDaysAgo(ref.d, S.active.d || todayISO()) : ''
   const refSets = ref ? (refBest ? [ref.set] : ref.sets).map(s => setLabel(entry.id, s, ref.target, speedUnitOf(S))) : []
@@ -256,9 +264,16 @@ function ExerciseBlock({ entryIdx, compact, dense, editing, onToggle, onToggleSi
     {/* Each set on its own left-to-right island. In Arabic the first one followed the label's
         direction and read 8×60, while those after a Latin "RIR" read 60×8. A set that carries
         words of a right-to-left script keeps its own direction, still isolated (RTL_LETTER). */}
-    <span>{ref ? <>{refLabel} (<time dateTime={ref.d} title={fmtDate(ref.d, true, true)}>{refAgo}</time>): {refSets.map((l, i) => <Fragment key={i}>{i ? ', ' : ''}<bdi dir={RTL_LETTER.test(l) ? 'auto' : 'ltr'}>{l}</bdi></Fragment>)}</> : refText}</span>
+    <span>{ref ? <>{refLabel} (<time dateTime={ref.d} title={fmtDate(ref.d, true, true)}>{refAgo}</time>)<span className="sep">: </span>{refSets.map((l, i) => <Fragment key={i}>{i ? <span className="sep">, </span> : ''}<bdi dir={refDir(l)}>{l}</bdi></Fragment>)}</> : refText}</span>
     <Icon name="history" />
   </button> : null
+  // Cards draw the sets it lists as rows under it (components/workout/WorkoutLastTime.jsx); the
+  // button above stays the one switch and the one accessible name, as a caption. Other views keep
+  // the line as it was. Cardio reads as one line, not a table.
+  const refSingle = !!ref && modeOf({ ...(ref.target || {}), id: entry.id }) === 'cardio'
+  const lastTime = refLine && m1 && !compact && !dense
+    ? <WorkoutLastTime head={refLine} rows={ref ? refSets : []} single={refSingle} dirOf={refDir} />
+    : refLine
   // Zero added weight must stay editable: a bodyweight set can become weighted
   // later, or return to zero without losing its load control (issue #460).
   const cfg = { ...(entry.target || {}), id: entry.id }
@@ -626,19 +641,21 @@ function ExerciseBlock({ entryIdx, compact, dense, editing, onToggle, onToggleSi
       {row}
     </SwipeRow>
   }
-  return <>
+  const Root = m1 ? M1Block : Fragment
+  return <Root>
     {/* Animations set to Small: a thumbnail beside the name instead of a strip above it, so the
         first set is on screen without scrolling; a tap brings the full animation back. */}
     {!dense && !thumb && <Media ex={ex} key={entry.id} compact={compact} minimizable />}
     <div className="row between exhd" style={{ marginBottom: 6 }}>
       {thumb && <WorkoutThumb ex={ex} onExpand={() => update(s => { s.gifSize = 'full' })} />}
-      <div style={{ flex: 1, minWidth: 0, fontSize: (compact || dense) ? 17 : 20, fontWeight: 600, letterSpacing: '-.02em', lineHeight: 1.2 }} className={exerciseNameClass(ex)}>{exerciseNameFor(ex)}</div>
+      <div style={{ flex: 1, minWidth: 0, ...(m1 ? null : { fontSize: (compact || dense) ? 17 : 20, fontWeight: 600, letterSpacing: '-.02em', lineHeight: 1.2 }) }} className={'xb-name ' + exerciseNameClass(ex)}>{exerciseNameFor(ex)}</div>
       <div className="row" style={{ gap: 2, flex: 'none' }}>
         {entry.note && <button className="iconbtn" aria-label={t('Note')} title={t('Note')} style={{ color: 'var(--acc)' }}
           onClick={() => exerciseNoteSheet(entryIdx)}><Icon name="note" /></button>}
         <button className="iconbtn" aria-label={t('More')} title={t('More')} onClick={openMore}><Icon name="more" /></button>
       </div>
     </div>
+    {m1?.show && <WorkoutCurrentSet view={m1.view} name={m1.name} />}
     {/* Kept out of progression: by hand for this session (the ⋯ menu, with its undo right here),
         or by a deload or rehab routine, which owns that choice and offers no undo. On in every
         view, compact included: it changes what the next session is built from. */}
@@ -648,14 +665,14 @@ function ExerciseBlock({ entryIdx, compact, dense, editing, onToggle, onToggleSi
     </div>}
     {/* compact view keeps the plan line: it is what the rows are measured against */}
     {dense && planLine}
-    {wc.pairButtons && !compact && !dense && (onPairPrev || onPairNext) && <div className="row" style={{ gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+    {wc.pairButtons && !compact && !dense && (onPairPrev || onPairNext) && <div className="row xb-pair" style={{ gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
       {onPairPrev && <Button size="xs" variant="tinted" icon="link" title={t('Make superset with previous')} onClick={onPairPrev}>{t('Make superset with previous')}</Button>}
       {onPairNext && <Button size="xs" variant="tinted" icon="link" title={t('Make superset with next')} onClick={onPairNext}>{t('Make superset with next')}</Button>}
     </div>}
     {/* compact view drops everything from here to the sets card — it is all still on the ⋯ menu
         (note, details, history, bar weight, progression) or is display-only (tags, "last time"). */}
     {!dense && <>
-    <div className="row" style={{ gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+    <div className="row xb-tags" style={{ gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
       {cardio && <span className="tag acc"><Icon name="figureRun" />{t('Cardio')}</span>}
       {/* A unilateral exercise is logged per side directly (the L/R rows below for reps, a
           "Left"/"Right" tag on each doubled row for a timed hold), so the old "{n} per side"
@@ -678,14 +695,14 @@ function ExerciseBlock({ entryIdx, compact, dense, editing, onToggle, onToggleSi
     </div>}
     {entry.note && <div className="exnote">{entry.note}</div>}
     {planLine}
-    {refLine}
+    {lastTime}
     {guidance && onProgressionSettings && <button type="button" className={'progline' + (plan.kind === 'deload' ? ' warn' : '')}
       aria-label={t('Open exercise settings')} onClick={onProgressionSettings}>
       <Icon name={plan.kind === 'up' ? 'arrowUp' : plan.kind === 'deload' ? 'arrowDown' : 'lightbulb'} />
       <span><strong>{t(guidance.policyLabel)}</strong> · {t(...guidance.why)}</span>
     </button>}
     </>}
-    <div className="card" style={{ marginTop: 10, marginBottom: 0 }}>
+    <div className="card xb-sets" style={{ marginTop: 10, marginBottom: 0 }}>
       {/* the header carries the same eff3/timed sizing as the rows, or the labels drift off their
           columns; over L/R rows it also has to skip the side badge that sits in front of the weight cell */}
       <div className={'sethead' + (col3 ? ' eff3' : '') + (timed ? ' timed' : '') + (perSide ? ' per-side' : '') + (wc.steppers ? '' : ' plain')}><span className="n-sp" /><span className="w-sp">{col1.hd}</span>{col2 && <span className="r-sp">{col2.hd}</span>}{col3 && <span className={col3.eff ? 'eff-sp' : 'r-sp'}>{col3.hd}</span>}{timed && <span className="ck-sp" />}<span className="ck-sp" /></div>
@@ -765,7 +782,7 @@ function ExerciseBlock({ entryIdx, compact, dense, editing, onToggle, onToggleSi
         <Button size="sm" icon="plus" onClick={onAddSet}>{t('Add set')}</Button>
       </div> : <Button size="sm" icon="plus" onClick={onAddSet}>{t('Add set')}</Button>}
     </div>
-  </>
+  </Root>
 }
 
 /* ---------- swipe on sets: delete, undo, copy (v1.3.11) ---------- */
@@ -1293,6 +1310,17 @@ function ActiveWorkout() {
     onNoProg: routineKeepsOut(A.entries[idx]) ? null : on => setNoProg(idx, on),
     routineUpdate: routineUpdateFor(idx),
   })
+  // Cards only: what the strip under an exercise's name says, from the same nextOpenSet the keyboard
+  // uses (lib/workout-current.js). Read-only; `at` is the entry the card is built around. A
+  // superset's strip sits on the member whose turn it is, and the finished/elsewhere notes on its first.
+  const cardsM1 = !listMode && !focusMode
+  const m1For = (idx, unitIdxs) => {
+    if (!cardsM1) return undefined
+    const view = currentSetView(A.entries, unitIdxs?.[0] ?? idx)
+    const nameOf = i => exerciseNameFor(exOr(A.entries[i]?.id))
+    const show = !!view && (view.kind === 'here' ? view.idx === idx : idx === (unitIdxs?.[0] ?? idx))
+    return { view, show, name: view && view.kind === 'elsewhere' ? nameOf(view.idx) : null }
+  }
   const selectFocusEntry = idx => update(s => { if (s.active) s.active.cur = idx })
   const advanceFocusUnit = () => update(s => {
     if (!s.active) return
@@ -1998,10 +2026,10 @@ function ActiveWorkout() {
               </div>
               {adjacent.map((idx, k) => <div key={idx} className="ss-ex" data-exidx={idx}>
                 {k > 0 && <div className="ss-amp">+</div>}
-                <ExerciseBlock entryIdx={idx} compact {...blockProps(idx)} />
+                <ExerciseBlock entryIdx={idx} compact m1={m1For(idx, adjacent)} {...blockProps(idx)} />
               </div>)}
             </div>
-          ) : <ExerciseBlock entryIdx={adjacent[0]}
+          ) : <ExerciseBlock entryIdx={adjacent[0]} m1={m1For(adjacent[0])}
             onPairPrev={adjacent[0] > 0 ? () => pairAt(adjacent[0] - 1, adjacent[0]) : null}
             onPairNext={adjacent[0] < A.entries.length - 1 ? () => pairAt(adjacent[0], adjacent[0] + 1) : null}
             {...blockProps(adjacent[0])} />
@@ -2021,18 +2049,24 @@ function ActiveWorkout() {
             const entry = A.entries[idx]
             return <div key={idx} ref={el => bindExRef(entry, el)} className="ss-ex" data-exidx={idx}>
               {k > 0 && <div className="ss-amp">+</div>}
-              <ExerciseBlock entryIdx={idx} compact onSetRowRef={(setIdx, el) => bindSetRef(entry, setIdx, el)}
+              <ExerciseBlock entryIdx={idx} compact m1={m1For(idx, unit)} onSetRowRef={(setIdx, el) => bindSetRef(entry, setIdx, el)}
                 {...blockProps(idx)} />
             </div>
           })}
         </div>
       ) : (
-        <ExerciseBlock entryIdx={cur} onPairPrev={onPairPrev} onPairNext={onPairNext} {...blockProps(cur)} />
+        <ExerciseBlock entryIdx={cur} m1={m1For(cur)} onPairPrev={onPairPrev} onPairNext={onPairNext} {...blockProps(cur)} />
       )}
       </SwipeCards>
     </>) : <div className="empty"><div className="ico"><Icon name="shuffle" /></div>{t('Freestyle workout. Add your first exercise and off you go.')}</div>}
 
     <div style={{ height: 12 }} />
+    {/* Cards: what comes after this exercise — the unit Next goes to, and Next when tapped. */}
+    {cardsM1 && A.entries.length > 0 && (() => {
+      const nv = nextUnitView(A.entries, cur)
+      return nv && <WorkoutNextUp superset={nv.superset} onGo={() => navigateUnit(1)}
+        names={nv.idxs.map(i => { const x = exOr(A.entries[i].id); return { text: exerciseNameFor(x), cls: exerciseNameClass(x) } })} />
+    })()}
     {!listMode && <div className="row">
       <Button icon="chevronLeft" disabled={unitIdx <= 0} onClick={() => navigateUnit(-1)}>{t('Prev')}</Button>
       <Button trailingIcon="chevronRight" disabled={unitIdx < 0 || unitIdx >= units.length - 1} onClick={() => navigateUnit(1)}>{t('Next')}</Button>
