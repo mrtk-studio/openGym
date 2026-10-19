@@ -13,9 +13,9 @@ import { scheduleModeOf } from '../lib/rotation.js'
 import { useConnectionTrouble } from '../components/SyncBanner.jsx'
 import { Button } from '../components/ui.jsx'
 import { tappable } from '../lib/use-sheet-keyboard.js'
-import { glyphOf } from '../lib/glyphs.js'
 import { dayNoteOf } from '../lib/day-notes.js'
 import { classifyToday } from '../lib/today-state.js'
+import { sessionSummary, recoveryContext } from '../lib/today-session.js'
 import TodayHeader from '../components/today/TodayHeader.jsx'
 import TodayPrimary from '../components/today/TodayPrimary.jsx'
 
@@ -41,7 +41,6 @@ export default function Home() {
   // first, kept for the one-routine glyph. The derived session name joins them (§9).
   const todayRoutines = effectiveRoutines(S, todayISO())
   const routine = todayRoutines[0] || null
-  const todayName = todayRoutines.map(r => r.name).join(' + ')
   // A fulfilled pin (a coach session pinned to today and since done) reads as no override.
   const todayOvr = S.dayPlan[todayISO()] !== undefined && pinState(S, S.dayPlan[todayISO()]) !== 'done'
   const bw = lastBW(S)
@@ -103,9 +102,16 @@ export default function Home() {
   const bwPoints = S.bodyweight.slice(-30).map(b => ({ t: b.t || new Date(b.d).getTime(), y: b.w, d: b.d }))
 
   const state = classifyToday({ active: S.active, hasRoutines: S.routines.length > 0, hasPlanToday: todayRoutines.length > 0, doneToday })
-  // The words for the row, in the order the state would have them: the open session's name, else
-  // today's routines joined. The component adds the state's own phrasing around them.
-  const rowName = S.active ? S.active.name : todayName
+  // What the Planned command center shows, from the same effective routines Start uses: their
+  // names and summed exercise count, the muscles they work most, this week's tally, and how long
+  // since one of those muscles was trained (history only).
+  let planned = null
+  if (state.kind === 'planned') {
+    const { count, focus } = sessionSummary(todayRoutines, S.customEx)
+    planned = { names: todayRoutines.map(r => r.name), count, focus, week: { done: doneThisWeek, planned: plannedPerWeek }, recovery: recoveryContext(S.workouts, focus) }
+  }
+  // The open session's name, for the active row.
+  const rowName = S.active?.name
   const rescheduled = todayOvr && !!routine && !doneToday
 
   // Today's row: resume what is open, else start today's plan, else assign a day.
@@ -119,7 +125,7 @@ export default function Home() {
       trouble={trouble} onSettings={() => nav('/settings')} />
 
     {/* The command-center slot: one rendering per state (components/today/TodayPrimary.jsx). */}
-    <TodayPrimary state={state} name={rowName} doneName={doneToday?.name} glyph={routine ? glyphOf(routine.emoji) : 'moon'}
+    <TodayPrimary state={state} planned={planned} name={rowName} doneName={doneToday?.name}
       rescheduled={rescheduled} next={next} nextDay={next ? DAYN[next.weekday] : null}
       onPress={onToday} onChoose={() => nav('/workout')} onStarter={starterPlanSheet} onBuild={() => nav('/plan')} />
 

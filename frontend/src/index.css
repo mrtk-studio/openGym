@@ -2198,3 +2198,63 @@ body.today-canvas,html:has(body.today-canvas){background:var(--m1-canvas)}
 .today-date{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--m1-muted);margin-bottom:6px}
 .today-primary{margin-bottom:calc(var(--m1-section-gap) - var(--m1-card-gap))}
 .today-secondary{display:block}
+
+/* --- Today (M1): the Planned command center. Fixed M1 colours — Action Red hero, warm-white
+   contrast tile, Recovery Lime tile — none of them the user's --acc. Small text on the red and
+   the lime is ink (5.0 / 14.3 : 1); white is only for the large bold title and button, where
+   3.78 : 1 meets the 3 : 1 bar. --- */
+.m1-hero{
+  --hero-ink:#111111;--hero-paper:#F5F2EC;
+  background:var(--m1-action);color:var(--m1-on-action);border-radius:var(--m1-r-hero);
+  padding:var(--m1-pad-hero);margin-bottom:var(--m1-card-gap);
+}
+.m1-hero-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.m1-kicker{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
+.m1-hero .m1-kicker{color:var(--hero-ink)}
+.m1-status{
+  display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--hero-ink);background:rgba(17,17,17,.14);border-radius:999px;padding:5px 11px;white-space:nowrap;
+}
+.m1-status .icn{font-size:14px}
+.m1-status.alt{background:var(--hero-ink);color:var(--hero-paper)}
+.m1-hero-title{font-weight:800;letter-spacing:-.035em;line-height:1.02;margin:22px 0 14px;overflow-wrap:anywhere;color:var(--m1-on-action)}
+.m1-hero-title.lg{font-size:52px}
+.m1-hero-title.md{font-size:38px}
+.m1-hero-title.sm{font-size:28px;line-height:1.1;letter-spacing:-.025em}
+.m1-hero-names{list-style:none;margin:20px 0 14px;display:grid;gap:6px}
+.m1-hero-names li+li::before{content:'+ ';opacity:.7}
+.m1-hero-names li{font-size:26px;font-weight:800;letter-spacing:-.025em;line-height:1.1;overflow-wrap:anywhere;color:var(--m1-on-action)}
+.m1-hero-meta{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:15px;font-weight:600;color:var(--hero-ink);margin-bottom:22px}
+.m1-hero-meta span+span::before{content:'';display:inline-block;width:4px;height:4px;border-radius:50%;background:currentColor;opacity:.55;margin-inline-end:14px;vertical-align:middle}
+.m1-hero-cta{
+  width:100%;min-height:56px;display:flex;align-items:center;justify-content:center;gap:10px;
+  border-radius:var(--m1-r-ctl);background:var(--hero-ink);color:var(--hero-paper);
+  font-size:17px;font-weight:700;letter-spacing:-.01em;transition:transform var(--fast) var(--ease);
+}
+.m1-hero-cta:active{transform:scale(.98)}
+.m1-hero-cta .icn{font-size:20px}
+/* Done: quieter — a plain M1 surface, the check in the status, and a Start that is still a button. */
+.m1-hero.done{background:var(--m1-surface);color:var(--m1-text)}
+.m1-hero.done .m1-kicker,.m1-hero.done .m1-hero-meta{color:var(--m1-muted)}
+.m1-hero.done .m1-hero-title,.m1-hero.done .m1-hero-names li{color:var(--m1-text)}
+.m1-hero.done .m1-status{background:var(--m1-surface-2);color:var(--m1-text)}
+.m1-hero.done .m1-hero-cta{background:var(--m1-surface-2);color:var(--m1-text)}
+.m1-tiles{display:grid;grid-template-columns:1fr 1fr;gap:var(--m1-card-gap);margin-bottom:6px}
+.m1-tile{padding:var(--m1-pad-compact);min-height:150px;display:flex;flex-direction:column;min-width:0}
+.m1-tile-week{background:var(--m1-contrast);color:var(--m1-on-contrast);border-radius:var(--m1-r-card) var(--m1-r-card) var(--m1-r-card) 8px}
+.m1-tile-week .m1-kicker,.m1-tile-week .m1-tile-label{color:var(--m1-contrast-2)}
+.m1-tile-recovery{background:var(--m1-recovery);color:var(--m1-on-recovery);border-radius:var(--m1-r-card) var(--m1-r-card) 8px var(--m1-r-card)}
+.m1-tile-recovery .m1-kicker,.m1-tile-recovery .m1-tile-label,.m1-tile-recovery .m1-tile-note{color:rgba(17,17,17,.78)}
+.m1-tile .m1-kicker{font-size:11px}
+.m1-metric{font-size:46px;font-weight:800;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums;margin-top:auto}
+.m1-metric-of{font-size:24px;font-weight:700;letter-spacing:-.02em;opacity:.55}
+.m1-tile-title{font-size:21px;font-weight:700;letter-spacing:-.02em;line-height:1.1;margin-top:8px;overflow-wrap:anywhere}
+.m1-tile-label{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-top:6px}
+.m1-tile-note{font-size:13px;font-weight:500;line-height:1.3;margin-top:8px}
+.m1-tile-recovery.is-empty .m1-tile-title{margin-top:auto}
+.m1-bar{height:6px;border-radius:3px;background:rgba(127,127,127,.28);margin-top:10px;overflow:hidden}
+.m1-bar i{display:block;height:100%;background:var(--m1-action);border-radius:3px}
+/* The way to another workout: a secondary action, below the command center and quiet. */
+.m1-door{display:flex;justify-content:center;margin-top:2px}
+.m1-door .btn{color:var(--m1-muted)}
+@media (prefers-reduced-motion:reduce){.m1-hero-cta{transition:none}}

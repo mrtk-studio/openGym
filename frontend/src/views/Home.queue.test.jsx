@@ -55,7 +55,16 @@ const mount = () => act(() => root.render(<Home />))
 const chips = () => [...host.querySelectorAll('.queue .chip')]
 const chipTexts = () => chips().map(c => c.textContent)
 const status = () => host.querySelector('.queue .queue-status')?.textContent
-const todayTitle = () => host.querySelector('.today-row .ttl')?.textContent
+// A planned day is the M1 hero now (components/today/TodayHero.jsx), every other state still the
+// legacy row. Both are read back into the words the row always used, so the expectations below
+// stay what they were: the routines joined, "(done)" on a covered day, "· rescheduled" on an override.
+const heroTitle = () => {
+  const h = host.querySelector('.m1-hero')
+  if (!h) return undefined
+  const names = [...h.querySelectorAll('.m1-hero-title, .m1-hero-names li')].map(e => e.textContent).join(' + ')
+  return names + (h.classList.contains('done') ? ' (done)' : '') + (h.querySelector('.m1-status').textContent === 'Rescheduled' ? ' · rescheduled' : '')
+}
+const todayTitle = () => host.querySelector('.today-row .ttl')?.textContent ?? heroTitle()
 const card = () => [...host.querySelectorAll('.card .muted.small')].map(e => e.textContent).find(x => x.includes('this week'))
 
 describe('Home — coach week progress row', () => {
@@ -293,7 +302,7 @@ describe('Home — a session pinned to a day', () => {
 describe('Home — the today row follows today\'s plan, not just the last session', () => {
   const today = todayISO()
   const at = (id, start, name) => ({ id: 'w-' + id + start, d: today, start, end: start + 1000, routineIds: id ? [id] : [], routineId: id, name: name || routines.find(r => r.id === id).name, entries: [] })
-  const tag = () => host.querySelector('.today-row .tag')?.textContent
+  const tag = () => host.querySelector('.today-row .tag')?.textContent ?? (host.querySelector('.m1-hero') ? (host.querySelector('.m1-hero.done') ? 'Done' : 'Start') : undefined)
 
   it('a queue session done today: the row offers the next one, like the progress row', () => {
     setS({ workouts: [at('d1', Date.now() - 3600000)] })

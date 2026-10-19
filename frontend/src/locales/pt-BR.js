@@ -4,6 +4,7 @@
 import pt from './pt.js'
 
 export const PT_BR_OVERRIDES = {
+  'Log a few sessions and your recovery shows up here.': 'Registre algumas sessões e sua recuperação aparece aqui.',
   'The Coach is not turned on for this server. Ask its admin to enable it.': 'O Coach não está ativado neste servidor. Peça ao administrador para ativá-lo.',
   '{0} set brings an {1} with it. Switch on Effort per set in Settings to see it.': '{0} série traz um {1} junto. Ative “Esforço por série” nas Configurações para ver.',
   'Add to this set': 'Adicionar a esta série',

@@ -46,6 +46,10 @@ const state = () => page().dataset.todayState
 const mode = () => page().dataset.todayMode
 const title = () => host.querySelector('.today-row .ttl')?.textContent
 const tag = () => host.querySelector('.today-row .tag')?.textContent
+const hero = () => host.querySelector('.m1-hero')
+const heroNames = () => [...hero().querySelectorAll('.m1-hero-title, .m1-hero-names li')].map(e => e.textContent)
+const heroStatus = () => hero().querySelector('.m1-status').textContent
+const cta = () => hero().querySelector('.m1-hero-cta')
 const text = el => el.textContent
 const buttonByText = s => [...host.querySelectorAll('button')].find(b => b.textContent.includes(s))
 
@@ -70,23 +74,25 @@ describe('Today — the state of the day', () => {
   it('a planned day names its routine, offers Start, and starts through the combined-session flow', () => {
     setS(); mount()
     expect(state()).toBe('planned')
-    expect(title()).toBe('Push'); expect(tag()).toBe('Start')
-    act(() => { host.querySelector('.today-row').click() })
+    expect(heroNames()).toEqual(['Push']); expect(heroStatus()).toBe('Scheduled')
+    expect(host.querySelector('.today-row')).toBeNull()
+    expect(cta().textContent).toBe('Start workout')
+    act(() => { cta().click() })
     expect(startFlow).toHaveBeenCalledWith(['r1'])
   })
 
   it('several routines on one weekday read as one planned session, started together', () => {
     setS({ week: { [WD]: ['r1', 'r2'] } }); mount()
     expect(state()).toBe('planned')
-    expect(title()).toBe('Push + Core')
-    act(() => { host.querySelector('.today-row').click() })
+    expect(heroNames()).toEqual(['Push + Core'])
+    act(() => { cta().click() })
     expect(startFlow).toHaveBeenCalledWith(['r1', 'r2'])
   })
 
   it('a day override reschedules the planned session and says so', () => {
     setS({ week: {}, dayPlan: { [todayISO()]: 'r2' } }); mount()
     expect(state()).toBe('planned')
-    expect(title()).toBe('Core · rescheduled')
+    expect(heroNames()).toEqual(['Core']); expect(heroStatus()).toBe('Rescheduled')
   })
 
   it('a rest day says so, names the next session, and the row opens the day sheet', () => {
@@ -139,14 +145,15 @@ describe('Today — completed today', () => {
   it('a covered plan stays a planned day, flagged done, still tappable for a second session', () => {
     setS({ workouts: [loggedToday('r1', 'Push')] }); mount()
     expect(state()).toBe('planned')
-    expect(title()).toBe('Push (done)'); expect(tag()).toBe('Done')
-    act(() => { host.querySelector('.today-row').click() })
-    expect(startFlow).toHaveBeenCalled()
+    expect(hero().classList.contains('done')).toBe(true); expect(heroStatus()).toBe('Completed')
+    expect(cta().textContent).toBe('Start another session'); expect(cta().disabled).toBe(false)
+    act(() => { cta().click() })
+    expect(startFlow).toHaveBeenCalledWith(['r1'])
   })
 
   it('a freestyle session on a planned day does not count as covering the plan', () => {
     setS({ workouts: [{ ...loggedToday('x', 'Freestyle'), routineIds: [], routineId: null }] }); mount()
-    expect(title()).toBe('Push'); expect(tag()).toBe('Start')
+    expect(hero().classList.contains('done')).toBe(false); expect(heroStatus()).toBe('Scheduled')
   })
 
   it('a workout logged on a rest day reads as done, with its name', () => {
@@ -163,7 +170,7 @@ describe('Today — rotation and the coach / planner queue', () => {
   it('a coach queue puts its next session on today as planned', () => {
     setS({ week: {}, queue: queue() }); mount()
     expect(state()).toBe('planned')
-    expect(title()).toBe('Push')
+    expect(heroNames()).toEqual(['Push'])
     expect(host.querySelector('.queue')).not.toBeNull()
   })
 

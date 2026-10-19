@@ -1,4 +1,7 @@
 import Icon from '../Icon.jsx'
+import TodayHero from './TodayHero.jsx'
+import WeekTile from './WeekTile.jsx'
+import RecoveryTile from './RecoveryTile.jsx'
 import { Button } from '../ui.jsx'
 import { t } from '../../lib/i18n.js'
 import { tappable } from '../../lib/use-sheet-keyboard.js'
@@ -9,14 +12,15 @@ import { tappable } from '../../lib/use-sheet-keyboard.js'
 // (lib/today-state.js) and hands over what to say; taps go back to it as callbacks.
 //
 //   state      { kind, mode, done } from classifyToday
-//   name       the title for the row's state, as Home resolved it: the open session's name when
-//              active, the logged workout's when done, else today's routines joined with " + "
+//   name       the open session's name, for the active row
 //   rescheduled / next   the extra words under or after the title, already decided by Home
-//   glyph      the icon name of the routine on today, for a planned row
-export default function TodayPrimary({ state, name, doneName, glyph, rescheduled, next, nextDay, onPress, onChoose, onStarter, onBuild }) {
+//   planned    for a planned day, what the M1 command center shows: { names, count, focus, week,
+//              recovery } — all derived by Home from the effective routines and the log
+//
+// Planned has its M1 command center; the other states still use the legacy row until their own phase.
+export default function TodayPrimary({ state, planned: plan, name, doneName, rescheduled, next, nextDay, onPress, onChoose, onStarter, onBuild }) {
   const { kind, mode, done } = state
   const active = kind === 'active', editing = active && mode === 'editing'
-  const planned = kind === 'planned'
 
   if (kind === 'new-user') {
     return <div className="today-primary" data-state="new-user">
@@ -33,9 +37,20 @@ export default function TodayPrimary({ state, name, doneName, glyph, rescheduled
     </div>
   }
 
+  if (kind === 'planned') {
+    return <div className="today-primary" data-state="planned">
+      <TodayHero names={plan.names} count={plan.count} focus={plan.focus} rescheduled={rescheduled} done={done} onStart={onPress} />
+      <div className="m1-tiles">
+        <WeekTile done={plan.week.done} planned={plan.week.planned} />
+        <RecoveryTile recovery={plan.recovery} />
+      </div>
+      <ChooseDoor onChoose={onChoose} demoted />
+    </div>
+  }
+
   const title = active ? (editing ? name : t('{0} (in progress)', name))
     : done ? (doneName ? t('{0} (done)', doneName) : t('Workout done'))
-    : planned ? name : t('Rest day')
+    : t('Rest day')
 
   return <div className="today-primary" data-state={kind} data-mode={mode || undefined}>
     <div className="card">
@@ -46,8 +61,8 @@ export default function TodayPrimary({ state, name, doneName, glyph, rescheduled
           row keeps working, so a second session in one day is a tap away, just not urged. */}
       <div className="today-row" {...tappable(onPress)}>
         <div className="row" style={{ gap: 9, minWidth: 0 }}>
-          <span className="lrow-i" style={{ background: active ? 'var(--orange)' : done ? 'var(--surface-3)' : planned ? 'var(--acc)' : 'var(--surface-3)' }}>
-            <Icon name={active ? (editing ? 'pencil' : 'play') : done ? 'checkCircle' : planned ? glyph : 'moon'}
+          <span className="lrow-i" style={{ background: active ? 'var(--orange)' : 'var(--surface-3)' }}>
+            <Icon name={active ? (editing ? 'pencil' : 'play') : done ? 'checkCircle' : 'moon'}
               style={done && !active ? { color: 'var(--green)' } : undefined} />
           </span>
           <div style={{ minWidth: 0 }}>
@@ -58,7 +73,6 @@ export default function TodayPrimary({ state, name, doneName, glyph, rescheduled
         </div>
         {active ? <span className="tag" style={{ color: 'var(--orange)', background: 'color-mix(in srgb,var(--orange) 16%,transparent)' }}>{editing ? t('Edit') : t('Resume')}</span>
           : done ? <span className="tag" style={{ color: 'var(--green)', background: 'color-mix(in srgb,var(--green) 16%,transparent)' }}>{t('Done')}</span>
-          : planned ? <span className="tag acc">{t('Start')}</span>
           : <Icon name="plus" className="chev" />}
       </div>
       {!active && <ChooseDoor onChoose={onChoose} />}
@@ -72,8 +86,8 @@ export default function TodayPrimary({ state, name, doneName, glyph, rescheduled
 // only reachable on a day with nothing planned. The one other way in, "Choose a different
 // workout" on the weigh-in sheet, does not exist when the weigh-in is switched off. This is that
 // door, and it starts nothing on its own.
-function ChooseDoor({ onChoose }) {
-  return <div style={{ display: 'flex', justifyContent: 'center', marginTop: 4 }}>
+function ChooseDoor({ onChoose, demoted }) {
+  return <div className={demoted ? 'm1-door' : undefined} style={demoted ? undefined : { display: 'flex', justifyContent: 'center', marginTop: 4 }}>
     <Button size="sm" variant="ghost" className="dim" icon="swap" onClick={onChoose}>{t('Choose a different workout')}</Button>
   </div>
 }
