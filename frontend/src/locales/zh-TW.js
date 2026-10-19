@@ -2264,4 +2264,7 @@ export default {
   'Your sports watch, calling you back.': '你的運動手錶在叫你回來。',
   'Coach wants you back on the bar.': '教練等你回到槓鈴前。',
   'Gentle, for headphones or a quiet room.': '輕柔，適合耳機或安靜的房間。',
+  'Complete left': '完成左側',
+  'Complete right': '完成右側',
+  'Assistance ({0})': '輔助 ({0})',
 }

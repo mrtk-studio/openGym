@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { useStore } from '../store/useStore.js'
 import { workoutControls } from '../lib/workout-controls.js'
 import { useUI } from '../store/useUI.js'
-import { exOr, betterWeight } from '../lib/exercises.js'
+import { exOr, betterWeight, isAssisted } from '../lib/exercises.js'
 import { usesBar } from '../lib/bar.js'
 import { loadKindFor, baseWeightFor, inventoryFor, rowLoad, sameLoad, plateDelta, dropGrid } from '../lib/plates.js'
 import { effectiveRoutines, effectiveRoutineIds, lastEntryFor, bestWeightFor, bestWeightForEntry, buildSets, freestyleConfig, defaultConfig, setsDoneActive, setUnitsTotal, supersetUnits, unitOf, setLabel, modeOf, isBw, isPerSide, repStep, EFFORT, effortOf, stepEffort, capEffort, cascadeWeight, insertWarmupRow, barFloor, makeWarmupAt, canBeWarmup, makeWorkAt, removeRowAt, removeLastSet, setSpanAt, copyRowAt, copySpanAt, insertRowAt, pairAdjacent, unpairSuperset, cleanupSg, applyIntensifierPlan, pinnedNoteFor, exNoteFor, setsRepsOf } from '../lib/history.js'
@@ -48,6 +48,8 @@ import FocusView from './FocusView.jsx'
 import WorkoutCurrentSet from '../components/workout/WorkoutCurrentSet.jsx'
 import WorkoutLastTime from '../components/workout/WorkoutLastTime.jsx'
 import WorkoutNextUp from '../components/workout/WorkoutNextUp.jsx'
+import WorkoutCurrentAction from '../components/workout/WorkoutCurrentAction.jsx'
+import WorkoutMediaPeek from '../components/workout/WorkoutMediaPeek.jsx'
 import { currentSetView, nextUnitView } from '../lib/workout-current.js'
 import { withMeaning, historyAs, dbLoadFor, entryDbLoad, bellsIn, ownedWeightsFor, stepOwned } from '../lib/dumbbells.js'
 
@@ -641,11 +643,62 @@ function ExerciseBlock({ entryIdx, compact, dense, m1, editing, onToggle, onTogg
       {row}
     </SwipeRow>
   }
+  // Cards' Current Action (components/workout/WorkoutCurrentAction.jsx): the open row's own values
+  // and the one forward move, built from the same fields, steppers and handlers the grid below uses
+  // — onField/bump/sideBump for the numbers, onToggle/onToggleSide/onStartTimed for the action —
+  // so the two never hold different values and nothing about completion is decided here. Only the
+  // row nextOpenSet names (m1.view) gets one, and only while it is open: a finished set is not
+  // offered back as an Undo, the grid's check does that. A saved workout being corrected keeps to
+  // the rows; a past workout being logged gets no hold to start, which would imply a clock.
+  const effortFor = (sd, i, side) => {
+    if (!col3?.eff) return null
+    const v = sd[col3.f] ?? null
+    const open = () => effortPickerSheet(col3.eff, v, nv => {
+      if (side) setSide(i, side, col3.f, nv); else onField(i, col3.f, nv)
+      if (nv == null) return
+      const fresh = useStore.getState().S.active?.entries[entryIdx]?.sets[i]
+      if (side ? fresh && !fresh.sides?.[side]?.done : fresh && !fresh.done) { if (side) onToggleSide(i, side); else onToggle(i) }
+    })
+    return { label: v == null ? col3.hd : col3.hd + ' ' + fmtNum(v), onOpen: open }
+  }
+  const actionNode = (() => {
+    if (!m1?.show || m1.view.kind !== 'here' || editing) return null
+    const { i, side } = m1.view
+    const s = entry.sets[i]
+    if (!s) return null
+    const field = (key, label, value, step) => ({ key, label, value, dec: wc.steppers ? () => step(-1) : undefined, inc: wc.steppers ? () => step(1) : undefined })
+    const go = (label, icon, onClick, disabled) => ({ label, icon, onClick, disabled })
+    const loadHd = isAssisted(ex) ? t('Assistance ({0})', S.unit) : loadCol.hd
+    if (cardio) return <WorkoutCurrentAction mode="cardio" fields={[field('min', col1.hd, fmtNum(s.min ?? 0), d => bump(s, i, col1, d))]}
+      button={go(t('Complete'), 'check', () => onToggle(i))} />
+    if (timed) {
+      if (S.active.backfill) return null
+      return <WorkoutCurrentAction mode="time" fields={[field('sec', col1.hd, fmtNum(s.sec ?? 0), d => bump(s, i, col1, d))]}
+        button={go(t('Start set'), 'play', () => onStartTimed(i), !!working)} />
+    }
+    if (perSide && isSideSet(s) && side) {
+      const sd = s.sides[side]
+      const special = dropsOf(sd).length > 0 || clustersOf(sd).length > 0
+      return <WorkoutCurrentAction mode="side" effort={effortFor(sd, i, side)}
+        summary={special ? setLabel(entry.id, s, entry.target, speedUnit) : undefined}
+        fields={special ? [] : [field('w', loadHd, fmtNum(sd.w ?? 0), d => sideBump(i, side, loadCol, d)), field('r', repCol.hd, fmtNum(sd.r ?? 0), d => sideBump(i, side, repCol, d))]}
+        button={go(side === 'L' ? t('Complete left') : t('Complete right'), 'check', () => onToggleSide(i, side))} />
+    }
+    const special = isDropSet(s) || isRestPauseSet(s)
+    return <WorkoutCurrentAction mode={special ? 'special' : 'reps'} effort={effortFor(s, i)}
+      summary={special ? setLabel(entry.id, s, entry.target, speedUnit) : undefined}
+      fields={special ? [] : [field('w', loadHd, fmtNum(s.w ?? 0), d => bump(s, i, loadCol, d)), field('r', repCol.hd, fmtNum(s.r ?? 0), d => bump(s, i, repCol, d))]}
+      button={go(t('Complete set'), 'check', () => onToggle(i))} />
+  })()
   const Root = m1 ? M1Block : Fragment
   return <Root>
     {/* Animations set to Small: a thumbnail beside the name instead of a strip above it, so the
         first set is on screen without scrolling; a tap brings the full animation back. */}
-    {!dense && !thumb && <Media ex={ex} key={entry.id} compact={compact} minimizable />}
+    {/* Cards: the Animations setting still decides (Small is the thumbnail beside the name, Off is
+        none); at Full the animation is a strip with Expand rather than the full-height block. */}
+    {!dense && !thumb && (m1 && !compact && S.gifSize !== 'off' && S.gifSize !== 'mini' && hasWorkoutMedia(ex)
+      ? <WorkoutMediaPeek ex={ex} key={entry.id} />
+      : <Media ex={ex} key={entry.id} compact={compact} minimizable />)}
     <div className="row between exhd" style={{ marginBottom: 6 }}>
       {thumb && <WorkoutThumb ex={ex} onExpand={() => update(s => { s.gifSize = 'full' })} />}
       <div style={{ flex: 1, minWidth: 0, ...(m1 ? null : { fontSize: (compact || dense) ? 17 : 20, fontWeight: 600, letterSpacing: '-.02em', lineHeight: 1.2 }) }} className={'xb-name ' + exerciseNameClass(ex)}>{exerciseNameFor(ex)}</div>
@@ -696,6 +749,7 @@ function ExerciseBlock({ entryIdx, compact, dense, m1, editing, onToggle, onTogg
     {entry.note && <div className="exnote">{entry.note}</div>}
     {planLine}
     {lastTime}
+    {actionNode}
     {guidance && onProgressionSettings && <button type="button" className={'progline' + (plan.kind === 'deload' ? ' warn' : '')}
       aria-label={t('Open exercise settings')} onClick={onProgressionSettings}>
       <Icon name={plan.kind === 'up' ? 'arrowUp' : plan.kind === 'deload' ? 'arrowDown' : 'lightbulb'} />
@@ -2061,7 +2115,9 @@ function ActiveWorkout() {
     </>) : <div className="empty"><div className="ico"><Icon name="shuffle" /></div>{t('Freestyle workout. Add your first exercise and off you go.')}</div>}
 
     <div style={{ height: 12 }} />
-    {/* Cards: what comes after this exercise — the unit Next goes to, and Next when tapped. */}
+    {/* Cards: what comes after this exercise — the unit Next goes to, and Next when tapped — and
+        Prev / Next, as one region. */}
+    <div className={cardsM1 && A.entries.length > 0 ? 'm1-nav' : undefined}>
     {cardsM1 && A.entries.length > 0 && (() => {
       const nv = nextUnitView(A.entries, cur)
       return nv && <WorkoutNextUp superset={nv.superset} onGo={() => navigateUnit(1)}
@@ -2071,6 +2127,7 @@ function ActiveWorkout() {
       <Button icon="chevronLeft" disabled={unitIdx <= 0} onClick={() => navigateUnit(-1)}>{t('Prev')}</Button>
       <Button trailingIcon="chevronRight" disabled={unitIdx < 0 || unitIdx >= units.length - 1} onClick={() => navigateUnit(1)}>{t('Next')}</Button>
     </div>}
+    </div>
     {!listMode && <div style={{ height: 10 }} />}
     {wc.exerciseButtons && listMode && A.entries.length > 0 && <div className="muted small" style={{ marginBottom: 6 }}>{t('Move, swap and remove below act on the exercise marked {0}.', t('Current'))}</div>}
     <Button onClick={addExercise} icon="plus">{t('Add exercise')}</Button>

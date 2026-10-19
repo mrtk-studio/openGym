@@ -2271,4 +2271,7 @@ export default {
   'Your sports watch, calling you back.': 'आपकी स्पोर्ट्स घड़ी आपको वापस बुला रही है।',
   'Coach wants you back on the bar.': 'कोच आपको बार पर वापस चाहते हैं।',
   'Gentle, for headphones or a quiet room.': 'धीमी, हेडफ़ोन या शांत कमरे के लिए।',
+  'Complete left': 'बायां पूरा करें',
+  'Complete right': 'दायां पूरा करें',
+  'Assistance ({0})': 'सहायता ({0})',
 }
